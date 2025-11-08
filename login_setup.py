@@ -43,33 +43,43 @@ async def main():
         secure_session.delete_token()
         print("🗑️ Cleared existing secure sessions")
         
-        print("Starting interactive login (supports MFA automatically)...")
+        # Ask about MFA setup
+        print("\n🔐 Security Check:")
+        has_mfa = input("Do you have MFA (Multi-Factor Authentication) enabled on your Monarch Money account? (y/n): ").strip().lower()
         
-        # Use the new interactive_login method which handles MFA automatically
+        if has_mfa not in ['y', 'yes']:
+            print("\n⚠️  SECURITY RECOMMENDATION:")
+            print("=" * 50)
+            print("You should enable MFA for your Monarch Money account.")
+            print("MFA adds an extra layer of security to protect your financial data.")
+            print("\nTo enable MFA:")
+            print("1. Log into Monarch Money at https://monarchmoney.com")
+            print("2. Go to Settings → Security")
+            print("3. Enable Two-Factor Authentication")
+            print("4. Follow the setup instructions\n")
+            
+            proceed = input("Continue with login anyway? (y/n): ").strip().lower()
+            if proceed not in ['y', 'yes']:
+                print("Login cancelled. Please set up MFA and try again.")
+                return
+        
+        print("\nStarting login...")
+        email = input("Email: ")
+        password = getpass.getpass("Password: ")
+        
+        # Try login without MFA first
         try:
-            await mm.interactive_login(use_saved_session=False, save_session=True)
+            await mm.login(email, password, use_saved_session=False, save_session=True)
             print("✅ Login successful!")
-        except Exception as login_error:
-            print(f"❌ Interactive login failed: {login_error}")
-            print(f"Error type: {type(login_error)}")
-            
-            # Fallback to manual login if interactive fails
-            print("\nFalling back to manual login...")
-            email = input("Email: ")
-            password = getpass.getpass("Password: ")
-            
-            try:
-                await mm.login(email, password, use_saved_session=False, save_session=True)
-                print("✅ Manual login successful (no MFA required)")
                 
-            except RequireMFAException:
-                print("🔐 MFA required")
-                mfa_code = input("Two Factor Code: ")
-                
-                # Use the same instance for MFA
-                await mm.multi_factor_authenticate(email, password, mfa_code)
-                print("✅ MFA authentication successful")
-                mm.save_session()  # Manually save the session
+        except RequireMFAException:
+            print("🔐 MFA code required")
+            mfa_code = input("Two Factor Code: ")
+            
+            # Use the same instance for MFA
+            await mm.multi_factor_authenticate(email, password, mfa_code)
+            print("✅ MFA authentication successful")
+            mm.save_session()  # Manually save the session
         
         # Test the connection first
         print("\nTesting connection...")
