@@ -13,7 +13,8 @@ from dotenv import load_dotenv
 from mcp.server.auth.provider import AccessTokenT
 from mcp.server.fastmcp import FastMCP
 import mcp.types as types
-from monarchmoney import MonarchMoney, RequireMFAException
+from monarchmoney import MonarchMoney, RequireMFAException, LoginFailedException
+from gql.transport.exceptions import TransportServerError
 from pydantic import BaseModel, Field
 from monarch_mcp_server.secure_session import secure_session
 from monarch_mcp_server.auth_server import trigger_auth_flow
@@ -30,17 +31,20 @@ mcp = FastMCP("Monarch Money MCP Server")
 
 
 def _is_auth_error(exc: Exception) -> bool:
-    """Heuristically detect whether an exception signals an expired/invalid token."""
-    msg = str(exc).lower()
-    if any(kw in msg for kw in ("unauthorized", "unauthenticated", "not authenticated")):
-        return True
-    if "token" in msg and any(kw in msg for kw in ("expired", "invalid", "revoked")):
-        return True
-    if "session" in msg and ("expired" in msg or "invalid" in msg):
-        return True
-    if "login" in msg and "required" in msg:
-        return True
-    if "401" in msg:
+    """Detect whether an exception signals an expired or invalid auth token.
+
+    Covers the two concrete error paths from the monarchmoney / gql stack:
+
+    1. Expired token on a GraphQL call → gql raises
+       ``TransportServerError`` with ``.code == 401`` (HTTP Unauthorized)
+       or ``.code == 403`` (HTTP Forbidden, e.g. invalidated session or
+       missing Device-UUID header).
+    2. Token/headers never set → monarchmoney raises
+       ``LoginFailedException`` ("Make sure you call login() first …").
+    """
+    if isinstance(exc, TransportServerError):
+        return getattr(exc, "code", None) in (401, 403)
+    if isinstance(exc, LoginFailedException):
         return True
     return False
 
