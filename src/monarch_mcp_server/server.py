@@ -13,14 +13,13 @@ from dotenv import load_dotenv
 from mcp.server.auth.provider import AccessTokenT
 from mcp.server.fastmcp import FastMCP
 import mcp.types as types
-from monarchmoney import MonarchMoney, MonarchMoneyEndpoints, RequireMFAException, LoginFailedException
-from gql.transport.exceptions import TransportServerError
+from monarchmoney import MonarchMoney, MonarchMoneyEndpoints, RequireMFAException
 from pydantic import BaseModel, Field
 
 # Monarch Money migrated from api.monarchmoney.com to api.monarch.com
 # The library v0.1.15 still has the old domain hardcoded (unmaintained)
 MonarchMoneyEndpoints.BASE_URL = "https://api.monarch.com"
-from monarch_mcp_server.secure_session import secure_session
+from monarch_mcp_server.secure_session import secure_session, is_auth_error
 from monarch_mcp_server.auth_server import trigger_auth_flow
 
 # Configure logging
@@ -32,25 +31,6 @@ load_dotenv()
 
 # Initialize FastMCP server
 mcp = FastMCP("Monarch Money MCP Server")
-
-
-def _is_auth_error(exc: Exception) -> bool:
-    """Detect whether an exception signals an expired or invalid auth token.
-
-    Covers the two concrete error paths from the monarchmoney / gql stack:
-
-    1. Expired token on a GraphQL call → gql raises
-       ``TransportServerError`` with ``.code == 401`` (HTTP Unauthorized)
-       or ``.code == 403`` (HTTP Forbidden, e.g. invalidated session or
-       missing Device-UUID header).
-    2. Token/headers never set → monarchmoney raises
-       ``LoginFailedException`` ("Make sure you call login() first …").
-    """
-    if isinstance(exc, TransportServerError):
-        return getattr(exc, "code", None) in (401, 403)
-    if isinstance(exc, LoginFailedException):
-        return True
-    return False
 
 
 def run_async(coro):
@@ -75,7 +55,7 @@ def run_async(coro):
         try:
             return future.result()
         except Exception as exc:
-            if _is_auth_error(exc):
+            if is_auth_error(exc):
                 logger.warning("Token appears expired — clearing and triggering re-auth")
                 secure_session.delete_token()
                 trigger_auth_flow()
@@ -136,25 +116,30 @@ async def get_monarch_client() -> MonarchMoney:
 @mcp.tool()
 def setup_authentication() -> str:
     """Get instructions for setting up secure authentication with Monarch Money."""
-    return """🔐 Monarch Money - One-Time Setup
+    return """🔐 Monarch Money - Authentication
 
-1️⃣ Open Terminal and run:
-   python login_setup.py
+Authentication happens automatically in your browser:
 
-2️⃣ Enter your Monarch Money credentials when prompted
-   • Email and password
-   • 2FA code if you have MFA enabled
+1️⃣ When the MCP server starts without a saved session, a login page
+   opens in your browser automatically
 
-3️⃣ Session will be saved automatically and last for weeks
+2️⃣ Enter your Monarch Money email and password
 
-4️⃣ Start using Monarch tools in Claude Desktop:
+3️⃣ Provide your 2FA code if you have MFA enabled
+
+4️⃣ Once authenticated, the token is saved to your system keyring
+
+Then start using Monarch tools in Claude Desktop:
    • get_accounts - View all accounts
    • get_transactions - Recent transactions
    • get_budgets - Budget information
 
-✅ Session persists across Claude restarts
-✅ No need to re-authenticate frequently
-✅ All credentials stay secure in terminal"""
+✅ Session persists across Claude restarts (weeks/months)
+✅ Expired sessions are re-authenticated automatically
+✅ Credentials are entered in your browser, never through Claude
+
+💡 Alternative: run `python login_setup.py` in a terminal for
+   headless environments where a browser is not available."""
 
 
 @mcp.tool()

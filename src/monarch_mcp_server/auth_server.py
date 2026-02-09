@@ -18,10 +18,9 @@ import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from concurrent.futures import ThreadPoolExecutor
 
-from monarchmoney import MonarchMoney, RequireMFAException, LoginFailedException
-from gql.transport.exceptions import TransportServerError
+from monarchmoney import MonarchMoney, RequireMFAException
 
-from monarch_mcp_server.secure_session import secure_session
+from monarch_mcp_server.secure_session import secure_session, is_auth_error
 
 logger = logging.getLogger(__name__)
 
@@ -308,15 +307,6 @@ class _AuthHandler(BaseHTTPRequestHandler):
 
 # ── Public API ──────────────────────────────────────────────────────────
 
-def _is_token_auth_error(exc: Exception) -> bool:
-    """Return True only for errors that indicate the token itself is invalid."""
-    if isinstance(exc, TransportServerError):
-        return getattr(exc, "code", None) in (401, 403)
-    if isinstance(exc, LoginFailedException):
-        return True
-    return False
-
-
 def _validate_token(token: str) -> bool | None:
     """Check whether a stored token is still valid by making a quick API call.
 
@@ -329,7 +319,7 @@ def _validate_token(token: str) -> bool | None:
         _run_async(mm.get_accounts())
         return True
     except Exception as exc:
-        if _is_token_auth_error(exc):
+        if is_auth_error(exc):
             logger.warning("Stored token is invalid or expired: %s", exc)
             return False
         # Server-side error (5xx, network, etc.) — don't discard the token
