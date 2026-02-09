@@ -16,6 +16,7 @@ import mcp.types as types
 from monarchmoney import MonarchMoney, RequireMFAException
 from pydantic import BaseModel, Field
 from monarch_mcp_server.secure_session import secure_session
+from monarch_mcp_server.auth_server import trigger_auth_flow
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -440,6 +441,10 @@ def refresh_accounts() -> str:
 def main():
     """Main entry point for the server."""
     logger.info("Starting Monarch Money MCP Server...")
+
+    # Auto-trigger browser authentication if no credentials are available
+    trigger_auth_flow()
+
     try:
         mcp.run()
     except Exception as e:
