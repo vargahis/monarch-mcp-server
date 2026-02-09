@@ -18,7 +18,8 @@ import webbrowser
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from concurrent.futures import ThreadPoolExecutor
 
-from monarchmoney import MonarchMoney, RequireMFAException
+from monarchmoney import MonarchMoney, RequireMFAException, LoginFailedException
+from gql.transport.exceptions import TransportServerError
 
 from monarch_mcp_server.secure_session import secure_session
 
@@ -307,6 +308,35 @@ class _AuthHandler(BaseHTTPRequestHandler):
 
 # ── Public API ──────────────────────────────────────────────────────────
 
+def _is_token_auth_error(exc: Exception) -> bool:
+    """Return True only for errors that indicate the token itself is invalid."""
+    if isinstance(exc, TransportServerError):
+        return getattr(exc, "code", None) in (401, 403)
+    if isinstance(exc, LoginFailedException):
+        return True
+    return False
+
+
+def _validate_token(token: str) -> bool | None:
+    """Check whether a stored token is still valid by making a quick API call.
+
+    Returns True if the token works, False if the token is definitively
+    invalid (401/403), or None if validation was inconclusive due to a
+    server-side error (so the existing token should be kept).
+    """
+    try:
+        mm = MonarchMoney(token=token)
+        _run_async(mm.get_accounts())
+        return True
+    except Exception as exc:
+        if _is_token_auth_error(exc):
+            logger.warning("Stored token is invalid or expired: %s", exc)
+            return False
+        # Server-side error (5xx, network, etc.) — don't discard the token
+        logger.warning("Could not validate token (server error): %s", exc)
+        return None
+
+
 def trigger_auth_flow() -> None:
     """Check for existing credentials; if absent, open a browser login page.
 
@@ -323,11 +353,20 @@ def trigger_auth_flow() -> None:
             logger.info("Auth server already running — skipping")
             return
 
-        # Already authenticated via keyring
+        # Check keyring token — validate it's still usable
         token = secure_session.load_token()
         if token:
-            logger.info("Auth token found in keyring — skipping browser auth")
-            return
+            result = _validate_token(token)
+            if result is True:
+                logger.info("Auth token found and validated — skipping browser auth")
+                return
+            if result is None:
+                # Server error — keep the token, skip browser auth
+                logger.info("Token validation inconclusive (server error) — keeping token")
+                return
+            # Token is definitively invalid (401/403) — clear it
+            logger.warning("Clearing stale token from keyring")
+            secure_session.delete_token()
 
         # Environment-variable credentials present (handled at tool-call time)
         if os.getenv("MONARCH_EMAIL") and os.getenv("MONARCH_PASSWORD"):
