@@ -19,7 +19,8 @@ from pydantic import BaseModel, Field
 # Monarch Money migrated from api.monarchmoney.com to api.monarch.com
 # The library v0.1.15 still has the old domain hardcoded (unmaintained)
 MonarchMoneyEndpoints.BASE_URL = "https://api.monarch.com"
-from monarch_mcp_server.secure_session import secure_session
+from monarch_mcp_server.secure_session import secure_session, is_auth_error
+from monarch_mcp_server.auth_server import trigger_auth_flow
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +34,13 @@ mcp = FastMCP("Monarch Money MCP Server")
 
 
 def run_async(coro):
-    """Run async function in a new thread with its own event loop."""
+    """Run async function in a new thread with its own event loop.
+
+    If the coroutine raises what looks like an authentication error the
+    stale token is cleared from the keyring, the browser-based auth flow
+    is re-triggered, and a clear RuntimeError is raised so the calling
+    tool can inform the user.
+    """
 
     def _run():
         loop = asyncio.new_event_loop()
@@ -45,7 +52,18 @@ def run_async(coro):
 
     with ThreadPoolExecutor() as executor:
         future = executor.submit(_run)
-        return future.result()
+        try:
+            return future.result()
+        except Exception as exc:
+            if is_auth_error(exc):
+                logger.warning("Token appears expired — clearing and triggering re-auth")
+                secure_session.delete_token()
+                trigger_auth_flow()
+                raise RuntimeError(
+                    "Your session has expired. A login page has been opened in "
+                    "your browser — please sign in and try again."
+                ) from exc
+            raise
 
 
 class MonarchConfig(BaseModel):
@@ -87,31 +105,41 @@ async def get_monarch_client() -> MonarchMoney:
             logger.error(f"Failed to login to Monarch Money: {e}")
             raise
 
-    raise RuntimeError("🔐 Authentication needed! Run: python login_setup.py")
+    # No credentials anywhere — open browser login and tell the user
+    trigger_auth_flow()
+    raise RuntimeError(
+        "🔐 Authentication needed! A login page has been opened in your "
+        "browser — please sign in and try again."
+    )
 
 
 @mcp.tool()
 def setup_authentication() -> str:
     """Get instructions for setting up secure authentication with Monarch Money."""
-    return """🔐 Monarch Money - One-Time Setup
+    return """🔐 Monarch Money - Authentication
 
-1️⃣ Open Terminal and run:
-   python login_setup.py
+Authentication happens automatically in your browser:
 
-2️⃣ Enter your Monarch Money credentials when prompted
-   • Email and password
-   • 2FA code if you have MFA enabled
+1️⃣ When the MCP server starts without a saved session, a login page
+   opens in your browser automatically
 
-3️⃣ Session will be saved automatically and last for weeks
+2️⃣ Enter your Monarch Money email and password
 
-4️⃣ Start using Monarch tools in Claude Desktop:
+3️⃣ Provide your 2FA code if you have MFA enabled
+
+4️⃣ Once authenticated, the token is saved to your system keyring
+
+Then start using Monarch tools in Claude Desktop:
    • get_accounts - View all accounts
    • get_transactions - Recent transactions
    • get_budgets - Budget information
 
-✅ Session persists across Claude restarts
-✅ No need to re-authenticate frequently
-✅ All credentials stay secure in terminal"""
+✅ Session persists across Claude restarts (weeks/months)
+✅ Expired sessions are re-authenticated automatically
+✅ Credentials are entered in your browser, never through Claude
+
+💡 Alternative: run `python login_setup.py` in a terminal for
+   headless environments where a browser is not available."""
 
 
 @mcp.tool()
@@ -464,6 +492,10 @@ def refresh_accounts() -> str:
 def main():
     """Main entry point for the server."""
     logger.info("Starting Monarch Money MCP Server...")
+
+    # Auto-trigger browser authentication if no credentials are available
+    trigger_auth_flow()
+
     try:
         mcp.run()
     except Exception as e:

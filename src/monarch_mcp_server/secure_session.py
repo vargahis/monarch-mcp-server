@@ -6,7 +6,8 @@ import keyring
 import logging
 import os
 from typing import Optional
-from monarchmoney import MonarchMoney, MonarchMoneyEndpoints
+from monarchmoney import MonarchMoney, MonarchMoneyEndpoints, LoginFailedException
+from gql.transport.exceptions import TransportServerError
 
 # Monarch Money migrated from api.monarchmoney.com to api.monarch.com
 # The library v0.1.15 still has the old domain hardcoded (unmaintained)
@@ -103,6 +104,23 @@ class SecureMonarchSession:
                         logger.info(f"🗑️ Cleaned up empty session directory: {path}")
             except Exception as e:
                 logger.warning(f"⚠️  Could not clean up {path}: {e}")
+
+
+def is_auth_error(exc: Exception) -> bool:
+    """Return True if the exception signals an expired or invalid auth token.
+
+    Covers the two concrete error paths from the monarchmoney / gql stack:
+
+    1. Expired token on a GraphQL call -> gql raises
+       ``TransportServerError`` with ``.code == 401`` or ``.code == 403``.
+    2. Token/headers never set -> monarchmoney raises
+       ``LoginFailedException``.
+    """
+    if isinstance(exc, TransportServerError):
+        return getattr(exc, "code", None) in (401, 403)
+    if isinstance(exc, LoginFailedException):
+        return True
+    return False
 
 
 # Global session manager instance
