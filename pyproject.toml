@@ -9,7 +9,7 @@ description = "Model Context Protocol (MCP) server for Monarch Money personal fi
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "Rob Cerda" }
+    { name = "vargahis" }
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -39,9 +39,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/robcerda/monarch-mcp-server"
-Repository = "https://github.com/robcerda/monarch-mcp-server"
-Issues = "https://github.com/robcerda/monarch-mcp-server/issues"
+Homepage = "https://github.com/vargahis/monarch-mcp-server"
+Repository = "https://github.com/vargahis/monarch-mcp-server"
+Issues = "https://github.com/vargahis/monarch-mcp-server/issues"
 
 [project.scripts]
 monarch-mcp-server = "monarch_mcp_server.server:main"

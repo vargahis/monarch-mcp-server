@@ -1,18 +1,8 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/robcerda-monarch-mcp-server-badge.png)](https://mseep.ai/app/robcerda-monarch-mcp-server)
-
 # Monarch Money MCP Server
 
 A Model Context Protocol (MCP) server for integrating with the Monarch Money personal finance platform. This server provides seamless access to your financial accounts, transactions, budgets, and analytics through Claude Desktop.
 
-My MonarchMoney referral: https://www.monarchmoney.com/referral/ufmn0r83yf?r_source=share
-
 **Built with the [monarchmoneycommunity Python library](https://pypi.org/project/monarchmoneycommunity/)** - A community-maintained fork of the MonarchMoney API that provides long-lived authentication tokens and full MFA support.
-
-> **Why this fork?** The original [hammem/monarchmoney](https://github.com/hammem/monarchmoney) library hardcodes `trusted_device: False`, resulting in 1-hour token expiration and frequent re-authentication. The monarchmoneycommunity fork (based on [bradleyseanf's work](https://github.com/bradleyseanf/monarchmoney)) sets `trusted_device: True` for long-lived tokens that last weeks/months, providing a much better user experience.
-
-<a href="https://glama.ai/mcp/servers/@robcerda/monarch-mcp-server">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@robcerda/monarch-mcp-server/badge" alt="monarch-mcp-server MCP server" />
-</a>
 
 ## 🚀 Quick Start
 
@@ -20,7 +10,7 @@ My MonarchMoney referral: https://www.monarchmoney.com/referral/ufmn0r83yf?r_sou
 
 1. **Clone this repository**:
    ```bash
-   git clone https://github.com/robcerda/monarch-mcp-server.git
+   git clone https://github.com/vargahis/monarch-mcp-server.git
    cd monarch-mcp-server
    ```
 
@@ -168,20 +158,10 @@ Apply tags to a transaction: use set_transaction_tags with transaction_id and a 
 ## 🔧 Troubleshooting
 
 ### Authentication Issues
-If you see "Authentication needed" errors:
-1. A login page should open automatically in your browser — complete the sign-in there
-2. If the browser doesn't open, run `python login_setup.py` from a terminal as a fallback
-3. Restart Claude Desktop and try using a tool like `get_accounts`
-
-### Session Expired
-Sessions last for weeks, but if expired the server handles it automatically:
-1. The expired token is cleared from the keyring
-2. A new browser login page is opened
-3. Sign in again and retry your request
+If you encounter authentication errors, the server will automatically open a browser login page. Complete the sign-in there and retry your request. If the browser doesn't open automatically, run `python login_setup.py` as a fallback.
 
 ### Common Error Messages
-- **"Your session has expired"**: Complete the browser login that was opened and retry
-- **"Authentication needed"**: Complete the browser login or run `python login_setup.py`
+- **"Your session has expired"** / **"Authentication needed"**: Complete the browser login that opens automatically
 - **"Invalid account ID"**: Use `get_accounts` to see valid account IDs
 - **"Date format error"**: Use YYYY-MM-DD format for dates
 
@@ -221,6 +201,8 @@ monarch-mcp-server/
 
 ## 🙏 Acknowledgments
 
+This repository is a fork of [robcerda/monarch-mcp-server](https://github.com/robcerda/monarch-mcp-server), maintained by vargahis.
+
 This MCP server is built on top of the [monarchmoneycommunity](https://pypi.org/project/monarchmoneycommunity/) Python library, a community-maintained fork that provides:
 
 - Long-lived authentication tokens (`trusted_device: True`)
@@ -229,6 +211,7 @@ This MCP server is built on top of the [monarchmoneycommunity](https://pypi.org/
 - Session management and persistence
 
 Special thanks to:
+- [@robcerda](https://github.com/robcerda) for creating the original [monarch-mcp-server](https://github.com/robcerda/monarch-mcp-server)
 - [@hammem](https://github.com/hammem) for creating the original [monarchmoney](https://github.com/hammem/monarchmoney) library
 - [@bradleyseanf](https://github.com/bradleyseanf) for the fork that implements long-lived tokens
 - The community contributors maintaining the [monarchmoneycommunity](https://pypi.org/project/monarchmoneycommunity/) package
@@ -239,12 +222,7 @@ MIT License
 
 ## 🆘 Support
 
-For issues:
-1. Check authentication with `check_auth_status`
-2. Try any tool — if the token is missing or expired the browser login will open automatically
-3. As a fallback, run `python login_setup.py` from a terminal
-4. Check error logs for detailed messages
-5. Ensure Monarch Money service is accessible
+For issues, check authentication with `check_auth_status` or try any tool to trigger automatic browser login if needed. See the Troubleshooting section above for common errors.
 
 ## 🔄 Updates
 
