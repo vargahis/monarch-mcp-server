@@ -20,9 +20,6 @@ sys.path.insert(0, str(src_path))
 from monarchmoney import MonarchMoney, MonarchMoneyEndpoints, RequireMFAException
 from dotenv import load_dotenv
 
-# Using monarchmoneycommunity>=1.3.0 which includes:
-# - Updated API domain (api.monarch.com)
-# - trusted_device: True for long-lived tokens
 from monarch_mcp_server.secure_session import secure_session
 
 async def main():

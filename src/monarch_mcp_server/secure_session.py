@@ -9,8 +9,6 @@ from typing import Optional
 from monarchmoney import MonarchMoney, MonarchMoneyEndpoints, LoginFailedException
 from gql.transport.exceptions import TransportServerError
 
-# Using monarchmoneycommunity>=1.3.0 which includes updated API domain and trusted_device: True
-
 logger = logging.getLogger(__name__)
 
 # Keyring service identifiers
