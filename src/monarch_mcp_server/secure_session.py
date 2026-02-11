@@ -6,12 +6,10 @@ import keyring
 import logging
 import os
 from typing import Optional
-from monarch_mcp_server.vendored_monarchmoney.monarchmoney import MonarchMoney, MonarchMoneyEndpoints, LoginFailedException
+from monarchmoney import MonarchMoney, MonarchMoneyEndpoints, LoginFailedException
 from gql.transport.exceptions import TransportServerError
 
-# Monarch Money migrated from api.monarchmoney.com to api.monarch.com
-# The library v0.1.15 still has the old domain hardcoded (unmaintained)
-MonarchMoneyEndpoints.BASE_URL = "https://api.monarch.com"
+# Using monarchmoneycommunity>=1.3.0 which includes updated API domain and trusted_device: True
 
 logger = logging.getLogger(__name__)
 
