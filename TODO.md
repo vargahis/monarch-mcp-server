@@ -50,8 +50,9 @@ Track progress across sessions. Update checkboxes as work proceeds.
 
 ## Cleanup
 - [x] Revert modified transactions (notes reverted to empty)
-- [ ] Delete test tag "MCP-Test-Tag" via Monarch web UI
+- [ ] Delete test tags "MCP-Test-Tag" and "Test Tag" via Monarch web UI
 - [x] Remove test tags from transactions (removed via `set_transaction_tags` empty list)
+- [ ] Delete test transaction (id: 235545705347956487, $1 "MCP Test Merchant", 2025-01-01) via Monarch web UI
 
 ---
 
@@ -67,6 +68,18 @@ Track progress across sessions. Update checkboxes as work proceeds.
 - [x] Fix Bug I — `get_transactions` `description`: removed nonexistent field
 - [x] Fix Bug J — `create_transaction`: all required args passed directly, no conditional checks
 - [x] Fix Bug K — Removed `MonarchConfig` class + cleaned up unused imports
+
+## Post-fix Verification (MCP server restarted)
+- [x] Bug A — `create_transaction` creates transaction successfully
+- [x] Bug B — `refresh_accounts` returns `true`
+- [x] Bug C — `get_transaction_tags` returns 9 tags (was `[]`)
+- [x] Bug D — `get_budgets` returns full budget data with budgetData, categoryGroups, goalsV2 (was `[]`)
+- [x] Bug E — `get_transactions(account_id=...)` returns filtered transactions for Chase checking
+- [x] Bug F — `get_transactions(start_date=...)` returns `{"error": "Both start_date and end_date are required..."}`
+- [x] Bug G — `get_cashflow(start_date=...)` returns `{"error": "Both start_date and end_date are required..."}`
+- [x] Bug H — `is_pending` now shows `true` for pending transactions (was always `false`)
+- [x] Bug I — `description` field removed from output
+- [x] All 11 fixes verified working against live API
 
 ## Unit Tests (after all fixes)
 - [ ] Design unit test architecture (mocking strategy, fixtures)
