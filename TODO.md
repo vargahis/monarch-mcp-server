@@ -130,7 +130,8 @@ Track progress across sessions. Update checkboxes as work proceeds.
 ## Potential New Bugs (from gap analysis)
 - [x] Fix Bug L — `get_budgets`: add `bool(start_date) != bool(end_date)` validation (same fix as Bugs F/G)
 - [x] Verify Bug L fix after MCP server restart — returns `{"error": "Both start_date and end_date are required when filtering by date."}`
-- [ ] Fix Bug M — `is_auth_error()` treats WAF 403 as auth failure. Should distinguish auth 403 from WAF/content-filter 403. Discovered when `<script>` tag in merchant_name triggered Monarch's WAF, which returned 403, causing valid token deletion + unnecessary re-auth.
+- [x] Fix Bug M — `is_auth_error()`: for 403, check `Content-Type` header via `__cause__`. WAF 403s (text/html) now return False, preventing unnecessary token deletion.
+- [x] Verify Bug M fix — `<script>` merchant returns graceful 403 error, token preserved, no re-auth triggered.
 
 ## Unit Tests (after all fixes)
 - [ ] Design unit test architecture (mocking strategy, fixtures)

@@ -111,9 +111,35 @@ def is_auth_error(exc: Exception) -> bool:
        ``TransportServerError`` with ``.code == 401`` or ``.code == 403``.
     2. Token/headers never set -> monarchmoney raises
        ``LoginFailedException``.
+
+    For 403 responses, we distinguish genuine auth failures from WAF
+    (Web Application Firewall) blocks.  Monarch's WAF returns 403 with
+    an HTML body when it rejects input containing patterns like
+    ``<script>`` tags.  These are NOT auth errors and must not trigger
+    token deletion / re-auth.
+
+    gql wraps the underlying ``aiohttp.ClientResponseError`` as the
+    ``__cause__`` of the ``TransportServerError``.  The cause carries
+    the original response headers, letting us check ``Content-Type``:
+    API auth errors return ``application/json``; WAF blocks return
+    ``text/html``.
     """
     if isinstance(exc, TransportServerError):
-        return getattr(exc, "code", None) in (401, 403)
+        code = getattr(exc, "code", None)
+        if code == 401:
+            return True
+        if code == 403:
+            cause = exc.__cause__
+            if cause is not None:
+                headers = getattr(cause, "headers", None) or {}
+                content_type = str(headers.get("content-type", "")).lower()
+                if "application/json" not in content_type:
+                    logger.warning(
+                        "403 with content-type %r — likely WAF block, not auth error",
+                        content_type,
+                    )
+                    return False
+            return True
     if isinstance(exc, LoginFailedException):
         return True
     return False
