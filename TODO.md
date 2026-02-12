@@ -54,6 +54,9 @@ Track progress across sessions. Update checkboxes as work proceeds.
 - [x] TEST 4.24 — `set_transaction_tags` invalid transaction_id PASS: graceful GraphQL error
 - [x] TEST 4.25 — `set_transaction_tags` non-existent tag_ids PASS: graceful GraphQL error
 - [x] TEST 4.26 — `refresh_accounts` happy path: previously verified in post-fix verification (returns `true`). Re-run blocked by auth expiry during testing.
+- [x] TEST 4.27 — `delete_transaction` happy path PASS: returns `{"deleted": true, "transaction_id": "..."}`
+- [x] TEST 4.28 — `delete_transaction` invalid transaction_id PASS: graceful GraphQL error
+- [x] TEST 4.29 — `delete_transaction` already deleted PASS: API is idempotent (returns `deleted: true`)
 
 ## Phase 5: Edge Cases and Boundary Testing
 - [x] TEST 5.1 — Pagination PASS: page 1 and page 2 have no overlapping IDs
@@ -98,7 +101,7 @@ Track progress across sessions. Update checkboxes as work proceeds.
 - [x] Revert modified transactions (notes, amount, date, merchant, category, hide_from_reports, needs_review all reverted)
 - [ ] Delete test tags via Monarch web UI: MCP-Test-Tag, Test Tag, テスト-Tag-🏷️, AAAA...(200+), Test & 'Quotes' "Double"
 - [x] Remove test tags from transactions (removed via `set_transaction_tags` empty list)
-- [ ] Delete test transactions via Monarch web UI (no delete_transaction tool): 235545705347956487, 235547688408595608, 235547700793327387, 235547701982412644, 235547703143185777, 235547704210636217, 235547746415820466
+- [x] Delete test transactions via `delete_transaction` tool: all 7 deleted successfully
 
 ---
 

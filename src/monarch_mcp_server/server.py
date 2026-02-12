@@ -469,6 +469,28 @@ def update_transaction(
 
 
 @mcp.tool()
+def delete_transaction(transaction_id: str) -> str:
+    """
+    Delete a transaction from Monarch Money.
+
+    Args:
+        transaction_id: The ID of the transaction to delete
+    """
+    try:
+
+        async def _delete_transaction():
+            client = await get_monarch_client()
+            return await client.delete_transaction(transaction_id)
+
+        run_async(_delete_transaction())
+
+        return json.dumps({"deleted": True, "transaction_id": transaction_id}, indent=2)
+    except Exception as e:
+        logger.error(f"Failed to delete transaction: {e}")
+        return f"Error deleting transaction: {str(e)}"
+
+
+@mcp.tool()
 def refresh_accounts() -> str:
     """Request account data refresh from financial institutions."""
     try:
