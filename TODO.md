@@ -56,17 +56,17 @@ Track progress across sessions. Update checkboxes as work proceeds.
 ---
 
 ## Bug Fixes (after test confirmation)
-- [ ] Fix Bug A — `create_transaction`: wrong params, missing required args
-- [ ] Fix Bug B — `refresh_accounts`: missing required `account_ids` arg
-- [ ] Fix Bug C — `get_transaction_tags`: wrong response key (`householdTransactionTags`)
-- [ ] Fix Bug D — `get_budgets`: wrong response key + wrong data model
-- [ ] Fix Bug E — `get_transactions` account filter: `account_id` -> `account_ids` (list)
-- [ ] Fix Bug F — `get_transactions` single date: validate both dates required
-- [ ] Fix Bug G — `get_cashflow` single date: validate both dates required
-- [ ] Fix Bug H — `get_transactions` `is_pending`: field name `pending` not `isPending`
-- [ ] Fix Bug I — `get_transactions` `description`: field doesn't exist in GraphQL response
-- [ ] Fix Bug J — `create_transaction` vs `update_transaction` truthiness inconsistency
-- [ ] Fix Bug K — Remove dead `MonarchConfig` class
+- [x] Fix Bug A — `create_transaction`: match library signature (merchant_name + category_id required, description removed, notes added)
+- [x] Fix Bug B — `refresh_accounts`: fetch all account IDs via get_accounts() then pass to request_accounts_refresh()
+- [x] Fix Bug C — `get_transaction_tags`: read `householdTransactionTags` key
+- [x] Fix Bug D — `get_budgets`: return raw API response, accept start_date/end_date params
+- [x] Fix Bug E — `get_transactions` account filter: pass `account_ids=[account_id]` (list)
+- [x] Fix Bug F — `get_transactions` single date: validate both dates required with user-friendly error
+- [x] Fix Bug G — `get_cashflow` single date: same validation as Bug F
+- [x] Fix Bug H — `get_transactions` `is_pending`: read `pending` field
+- [x] Fix Bug I — `get_transactions` `description`: removed nonexistent field
+- [x] Fix Bug J — `create_transaction`: all required args passed directly, no conditional checks
+- [x] Fix Bug K — Removed `MonarchConfig` class + cleaned up unused imports
 
 ## Unit Tests (after all fixes)
 - [ ] Design unit test architecture (mocking strategy, fixtures)
