@@ -1,4 +1,4 @@
-# Phase 10 — Read-Only Tools (12 tests)
+# Phase 10 — Read-Only Tools (9 tests)
 
 ## 10.1 — get_transactions_summary: returns aggregate stats
 Call `get_transactions_summary()`.
@@ -36,15 +36,3 @@ Call `get_recurring_transactions(start_date="2025-01-01", end_date="2025-12-31")
 Call `get_recurring_transactions(end_date="2025-12-31")`.
 **Expected:** JSON with `error` key.
 
-## 10.10 — set_budget_amount: with category_id
-Pick a `category_id` from the categories discovered in Phase 8 (or use `{valid_category_id}`).
-Call `set_budget_amount(amount=500.0, category_id={valid_category_id})`.
-**Expected:** Success response.
-
-## 10.11 — set_budget_amount: both IDs -> error
-Call `set_budget_amount(amount=100.0, category_id="cat-1", category_group_id="grp-1")`.
-**Expected:** JSON with `error` key about providing exactly one.
-
-## 10.12 — set_budget_amount: neither ID -> error
-Call `set_budget_amount(amount=100.0)`.
-**Expected:** JSON with `error` key about providing exactly one.

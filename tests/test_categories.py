@@ -172,6 +172,7 @@ def test_delete_category_happy(mock_monarch_client):
 
     assert result["deleted"] is True
     assert result["category_id"] == "cat-1"
+    assert result["result"] is True
     mock_monarch_client.delete_transaction_category.assert_called_once_with("cat-1")
 
 

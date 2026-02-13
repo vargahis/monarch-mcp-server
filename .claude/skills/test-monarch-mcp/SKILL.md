@@ -141,7 +141,7 @@ After completing all tests, update state file: `last_completed_phase: 3`, add re
 
 ---
 
-## Phase 4 — Budgets & Cashflow (12 tests)
+## Phase 4 — Budgets, Cashflow & Budget Amounts (15 tests)
 
 Load and follow: `references/budgets-and-cashflow.md`
 
@@ -203,11 +203,11 @@ After completing all tests, update state file: `last_completed_phase: 9`, add re
 
 ---
 
-## Phase 10 — Read-Only Tools (12 tests)
+## Phase 10 — Read-Only Tools (9 tests)
 
 Load and follow: `references/read-only-tools.md`
 
-Tests `get_transactions_summary`, `get_subscription_details`, `get_institutions`, `get_cashflow_summary`, `get_recurring_transactions`, and `set_budget_amount`.
+Tests `get_transactions_summary`, `get_subscription_details`, `get_institutions`, `get_cashflow_summary`, and `get_recurring_transactions`.
 
 After completing all tests, update state file: `last_completed_phase: 10`, add results.
 

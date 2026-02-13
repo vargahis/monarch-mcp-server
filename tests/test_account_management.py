@@ -157,6 +157,7 @@ def test_delete_account_happy(mock_monarch_client):
 
     assert result["deleted"] is True
     assert result["account_id"] == "acc-1"
+    assert result["result"] is None
     mock_monarch_client.delete_account.assert_called_once_with("acc-1")
 
 

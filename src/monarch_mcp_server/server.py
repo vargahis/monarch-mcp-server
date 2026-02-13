@@ -1013,9 +1013,13 @@ def delete_transaction_category(category_id: str) -> str:
         client = await get_monarch_client()
         return await client.delete_transaction_category(category_id)
 
-    run_async(_delete_transaction_category())
+    result = run_async(_delete_transaction_category())
 
-    return json.dumps({"deleted": True, "category_id": category_id}, indent=2)
+    return json.dumps(
+        {"deleted": True, "category_id": category_id, "result": result},
+        indent=2,
+        default=str,
+    )
 
 
 @mcp.tool()
@@ -1191,6 +1195,7 @@ def get_aggregate_snapshots(
     async def _get_aggregate_snapshots():
         client = await get_monarch_client()
         kwargs = {}
+        # monarchmoney library requires date objects (not strings) for this method
         if start_date is not None:
             kwargs["start_date"] = datetime.strptime(start_date, "%Y-%m-%d").date()
         if end_date is not None:
@@ -1246,9 +1251,13 @@ def delete_account(account_id: str) -> str:
         client = await get_monarch_client()
         return await client.delete_account(account_id)
 
-    run_async(_delete_account())
+    result = run_async(_delete_account())
 
-    return json.dumps({"deleted": True, "account_id": account_id}, indent=2)
+    return json.dumps(
+        {"deleted": True, "account_id": account_id, "result": result},
+        indent=2,
+        default=str,
+    )
 
 
 def main():
