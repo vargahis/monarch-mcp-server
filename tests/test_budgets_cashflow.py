@@ -29,7 +29,7 @@ def test_budgets_both_dates(mock_monarch_client):
 
     assert "budgetData" in result
     mock_monarch_client.get_budgets.assert_called_once_with(
-        start_date="2025-01-01", end_date="2025-01-31"
+        use_v2_goals=True, start_date="2025-01-01", end_date="2025-01-31"
     )
 
 
@@ -39,7 +39,7 @@ def test_budgets_no_dates(mock_monarch_client):
     result = json.loads(get_budgets())
 
     assert "budgetData" in result
-    mock_monarch_client.get_budgets.assert_called_once_with()
+    mock_monarch_client.get_budgets.assert_called_once_with(use_v2_goals=True)
 
 
 def test_budgets_only_start():
@@ -69,6 +69,22 @@ def test_budgets_future_dates(mock_monarch_client):
     )
 
     assert result["budgetData"] is None
+
+
+def test_budgets_v2_goals_default(mock_monarch_client):
+    mock_monarch_client.get_budgets.return_value = SAMPLE_BUDGET
+
+    get_budgets()
+
+    mock_monarch_client.get_budgets.assert_called_once_with(use_v2_goals=True)
+
+
+def test_budgets_v2_goals_disabled(mock_monarch_client):
+    mock_monarch_client.get_budgets.return_value = SAMPLE_BUDGET
+
+    get_budgets(use_v2_goals=False)
+
+    mock_monarch_client.get_budgets.assert_called_once_with(use_v2_goals=False)
 
 
 # ===================================================================

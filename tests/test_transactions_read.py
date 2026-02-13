@@ -242,3 +242,132 @@ def test_future_dates_empty(mock_monarch_client):
     )
 
     assert result == []
+
+
+# ---------------------------------------------------------------------------
+# 3.15 – search filter
+# ---------------------------------------------------------------------------
+
+
+def test_search_filter(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(search="coffee")
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100, offset=0, search="coffee"
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3.16 – category_ids filter
+# ---------------------------------------------------------------------------
+
+
+def test_category_ids_filter(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(category_ids=["cat-1", "cat-2"])
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100, offset=0, category_ids=["cat-1", "cat-2"]
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3.17 – account_ids list filter
+# ---------------------------------------------------------------------------
+
+
+def test_account_ids_filter(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(account_ids=["acc-1", "acc-2"])
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100, offset=0, account_ids=["acc-1", "acc-2"]
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3.18 – account_id + account_ids conflict -> error
+# ---------------------------------------------------------------------------
+
+
+def test_account_id_and_account_ids_conflict():
+    result = json.loads(
+        get_transactions(account_id="acc-1", account_ids=["acc-2"])
+    )
+    assert "error" in result
+
+
+# ---------------------------------------------------------------------------
+# 3.19 – tag_ids filter
+# ---------------------------------------------------------------------------
+
+
+def test_tag_ids_filter(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(tag_ids=["tag-1"])
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100, offset=0, tag_ids=["tag-1"]
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3.20 – boolean filters
+# ---------------------------------------------------------------------------
+
+
+def test_bool_filters(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(has_notes=True, is_recurring=False)
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100, offset=0, has_notes=True, is_recurring=False
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3.21 – hidden_from_reports filter
+# ---------------------------------------------------------------------------
+
+
+def test_hidden_from_reports_filter(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(hidden_from_reports=True)
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100, offset=0, hidden_from_reports=True
+    )
+
+
+# ---------------------------------------------------------------------------
+# 3.22 – combined search and filters
+# ---------------------------------------------------------------------------
+
+
+def test_combined_search_and_filters(mock_monarch_client):
+    mock_monarch_client.get_transactions.return_value = _wrap([_make_txn(0)])
+
+    get_transactions(
+        search="grocery",
+        category_ids=["cat-1"],
+        start_date="2025-01-01",
+        end_date="2025-01-31",
+        is_split=False,
+    )
+
+    mock_monarch_client.get_transactions.assert_called_once_with(
+        limit=100,
+        offset=0,
+        start_date="2025-01-01",
+        end_date="2025-01-31",
+        search="grocery",
+        category_ids=["cat-1"],
+        is_split=False,
+    )
