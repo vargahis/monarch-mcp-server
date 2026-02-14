@@ -14,6 +14,8 @@ A Model Context Protocol (MCP) server for integrating with the Monarch Money per
 
 ### Option B: Install from TestPyPI
 
+> **Why TestPyPI?** The package is currently in pre-release testing. Once validated, it will be published to the main Python Package Index (PyPI) and the install command will simplify to `pip install monarch-mcp-server`.
+
 1. **Install the package**:
    ```bash
    pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ monarch-mcp-server
@@ -72,32 +74,36 @@ A Model Context Protocol (MCP) server for integrating with the Monarch Money per
 
 3. **Configure Claude Desktop**:
    Add this to your Claude Desktop configuration file:
-   
+
    **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-   
-   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-   
+
    ```json
    {
      "mcpServers": {
        "Monarch Money": {
-         "command": "/opt/homebrew/bin/uv",
-         "args": [
-           "run",
-           "--with",
-           "mcp[cli]",
-           "--with-editable",
-           "/path/to/your/monarch-mcp-server",
-           "mcp",
-           "run",
-           "/path/to/your/monarch-mcp-server/src/monarch_mcp_server/server.py"
-         ]
+         "command": "python3",
+         "args": ["-m", "monarch_mcp_server"]
        }
      }
    }
    ```
-   
-   **Important**: Replace `/path/to/your/monarch-mcp-server` with your actual path!
+
+   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+
+   ```json
+   {
+     "mcpServers": {
+       "Monarch Money": {
+         "command": "py",
+         "args": ["-m", "monarch_mcp_server"]
+       }
+     }
+   }
+   ```
+
+   > **Note**: If you installed into a virtual environment, use the full path to that
+   > environment's Python interpreter as the `"command"` value instead (e.g.,
+   > `/path/to/venv/bin/python3` on macOS/Linux or `C:\\path\\to\\venv\\Scripts\\python.exe` on Windows).
 
 4. **Restart Claude Desktop**
 
