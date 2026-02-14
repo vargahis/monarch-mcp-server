@@ -1,4 +1,4 @@
-# Phase 4 — Budgets & Cashflow (12 tests)
+# Phase 4 — Budgets, Cashflow & Budget Amounts (15 tests)
 
 ---
 
@@ -177,5 +177,52 @@ get_cashflow(start_date = "2030-01-01", end_date = "2030-12-31")
 **Expected:** A dict with cashflow data, likely showing zero sums for income and expenses.
 
 **Validation:** Response is a dict/structured object (not an error string). No crash.
+
+**Cleanup:** None.
+
+---
+
+## Test 4.13 — set_budget_amount: with category_id
+
+Pick a `category_id` from discovery (or use `{valid_category_id}`).
+
+**Tool call:**
+```
+set_budget_amount(amount=500.0, category_id={valid_category_id})
+```
+
+**Expected:** Success response.
+
+**Validation:** Response is a dict/structured object (not an error string).
+
+**Cleanup:** None.
+
+---
+
+## Test 4.14 — set_budget_amount: both IDs -> error
+
+**Tool call:**
+```
+set_budget_amount(amount=100.0, category_id="cat-1", category_group_id="grp-1")
+```
+
+**Expected:** JSON with `error` key about providing exactly one.
+
+**Validation:** Response contains "error" key with "exactly one" (case-insensitive).
+
+**Cleanup:** None.
+
+---
+
+## Test 4.15 — set_budget_amount: neither ID -> error
+
+**Tool call:**
+```
+set_budget_amount(amount=100.0)
+```
+
+**Expected:** JSON with `error` key about providing exactly one.
+
+**Validation:** Response contains "error" key with "exactly one" (case-insensitive).
 
 **Cleanup:** None.

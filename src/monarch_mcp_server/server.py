@@ -1,4 +1,5 @@
 """Monarch Money MCP Server - Main server implementation."""
+# pylint: disable=too-many-lines
 
 import functools
 import json
@@ -6,7 +7,8 @@ import logging
 import os
 import re
 import traceback
-from typing import List, Optional
+from datetime import datetime
+from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor
 
 from dotenv import load_dotenv
@@ -239,12 +241,22 @@ def get_accounts() -> str:
 
 @mcp.tool()
 @_handle_mcp_errors("getting transactions")
-def get_transactions(
+def get_transactions(  # pylint: disable=too-many-arguments,too-many-positional-arguments,too-many-locals,too-many-branches
     limit: int = 100,
     offset: int = 0,
     start_date: Optional[str] = None,
     end_date: Optional[str] = None,
     account_id: Optional[str] = None,
+    search: Optional[str] = None,
+    category_ids: Optional[List[str]] = None,
+    account_ids: Optional[List[str]] = None,
+    tag_ids: Optional[List[str]] = None,
+    has_attachments: Optional[bool] = None,
+    has_notes: Optional[bool] = None,
+    hidden_from_reports: Optional[bool] = None,
+    is_split: Optional[bool] = None,
+    is_recurring: Optional[bool] = None,
+    synced_from_institution: Optional[bool] = None,
 ) -> str:
     """
     Get transactions from Monarch Money.
@@ -254,11 +266,27 @@ def get_transactions(
         offset: Number of transactions to skip (default: 0)
         start_date: Start date in YYYY-MM-DD format (requires end_date)
         end_date: End date in YYYY-MM-DD format (requires start_date)
-        account_id: Specific account ID to filter by
+        account_id: Specific account ID to filter by (shorthand for account_ids with one ID)
+        search: Free text search query
+        category_ids: List of category IDs to filter by
+        account_ids: List of account IDs to filter by (cannot use with account_id)
+        tag_ids: List of tag IDs to filter by
+        has_attachments: Filter transactions with/without attachments
+        has_notes: Filter transactions with/without notes
+        hidden_from_reports: Filter transactions hidden/visible in reports
+        is_split: Filter split/unsplit transactions
+        is_recurring: Filter recurring/non-recurring transactions
+        synced_from_institution: Filter synced/manual transactions
     """
     if bool(start_date) != bool(end_date):
         return json.dumps(
             {"error": "Both start_date and end_date are required when filtering by date."},
+            indent=2,
+        )
+
+    if account_id and account_ids:
+        return json.dumps(
+            {"error": "Cannot use both account_id and account_ids. Use one or the other."},
             indent=2,
         )
 
@@ -272,6 +300,26 @@ def get_transactions(
             filters["end_date"] = end_date
         if account_id:
             filters["account_ids"] = [account_id]
+        if account_ids:
+            filters["account_ids"] = account_ids
+        if search:
+            filters["search"] = search
+        if category_ids:
+            filters["category_ids"] = category_ids
+        if tag_ids:
+            filters["tag_ids"] = tag_ids
+        if has_attachments is not None:
+            filters["has_attachments"] = has_attachments
+        if has_notes is not None:
+            filters["has_notes"] = has_notes
+        if hidden_from_reports is not None:
+            filters["hidden_from_reports"] = hidden_from_reports
+        if is_split is not None:
+            filters["is_split"] = is_split
+        if is_recurring is not None:
+            filters["is_recurring"] = is_recurring
+        if synced_from_institution is not None:
+            filters["synced_from_institution"] = synced_from_institution
 
         return await client.get_transactions(limit=limit, offset=offset, **filters)
 
@@ -312,7 +360,9 @@ def get_transactions(
 @mcp.tool()
 @_handle_mcp_errors("getting budgets")
 def get_budgets(
-    start_date: Optional[str] = None, end_date: Optional[str] = None
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    use_v2_goals: bool = True,
 ) -> str:
     """
     Get budget information from Monarch Money.
@@ -320,6 +370,7 @@ def get_budgets(
     Args:
         start_date: Start date in YYYY-MM-DD format (default: last month)
         end_date: End date in YYYY-MM-DD format (default: next month)
+        use_v2_goals: Whether to use v2 goals format (default: True)
     """
     if bool(start_date) != bool(end_date):
         return json.dumps(
@@ -334,7 +385,7 @@ def get_budgets(
             filters["start_date"] = start_date
         if end_date is not None:
             filters["end_date"] = end_date
-        return await client.get_budgets(**filters)
+        return await client.get_budgets(use_v2_goals=use_v2_goals, **filters)
 
     budgets = run_async(_get_budgets())
 
@@ -403,6 +454,7 @@ def create_transaction(  # pylint: disable=too-many-arguments,too-many-positiona
     category_id: str,
     date: str,
     notes: Optional[str] = None,
+    update_balance: bool = False,
 ) -> str:
     """
     Create a new transaction in Monarch Money.
@@ -414,6 +466,7 @@ def create_transaction(  # pylint: disable=too-many-arguments,too-many-positiona
         category_id: Category ID for the transaction
         date: Transaction date in YYYY-MM-DD format
         notes: Optional transaction notes
+        update_balance: Whether to update the account balance (default: False)
     """
 
     async def _create_transaction():
@@ -425,6 +478,7 @@ def create_transaction(  # pylint: disable=too-many-arguments,too-many-positiona
             merchant_name=merchant_name,
             category_id=category_id,
             notes=notes or "",
+            update_balance=update_balance,
         )
 
     result = run_async(_create_transaction())
@@ -641,6 +695,569 @@ def set_transaction_tags(transaction_id: str, tag_ids: List[str]) -> str:
     result = run_async(_set_transaction_tags())
 
     return json.dumps(result, indent=2, default=str)
+
+
+# ── Phase 2: Read-only tools ──────────────────────────────────────────
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting transaction categories")
+def get_transaction_categories() -> str:
+    """Get all transaction categories from Monarch Money."""
+
+    async def _get_transaction_categories():
+        client = await get_monarch_client()
+        return await client.get_transaction_categories()
+
+    categories = run_async(_get_transaction_categories())
+
+    return json.dumps(categories, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting transaction category groups")
+def get_transaction_category_groups() -> str:
+    """Get all transaction category groups from Monarch Money."""
+
+    async def _get_transaction_category_groups():
+        client = await get_monarch_client()
+        return await client.get_transaction_category_groups()
+
+    groups = run_async(_get_transaction_category_groups())
+
+    return json.dumps(groups, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting transaction details")
+def get_transaction_details(
+    transaction_id: str,
+    redirect_posted: bool = True,
+) -> str:
+    """
+    Get detailed information about a specific transaction.
+
+    Args:
+        transaction_id: The ID of the transaction
+        redirect_posted: Whether to redirect to posted transaction (default: True)
+    """
+
+    async def _get_transaction_details():
+        client = await get_monarch_client()
+        return await client.get_transaction_details(
+            transaction_id, redirect_posted=redirect_posted,
+        )
+
+    details = run_async(_get_transaction_details())
+
+    return json.dumps(details, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting recurring transactions")
+def get_recurring_transactions(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> str:
+    """
+    Get recurring transactions from Monarch Money.
+
+    Args:
+        start_date: Start date in YYYY-MM-DD format (requires end_date)
+        end_date: End date in YYYY-MM-DD format (requires start_date)
+    """
+    if bool(start_date) != bool(end_date):
+        return json.dumps(
+            {"error": "Both start_date and end_date are required when filtering by date."},
+            indent=2,
+        )
+
+    async def _get_recurring_transactions():
+        client = await get_monarch_client()
+        filters = {}
+        if start_date:
+            filters["start_date"] = start_date
+        if end_date:
+            filters["end_date"] = end_date
+        return await client.get_recurring_transactions(**filters)
+
+    result = run_async(_get_recurring_transactions())
+
+    return json.dumps(result, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting transactions summary")
+def get_transactions_summary() -> str:
+    """Get aggregate transaction summary (count, sum, avg, max, income, expenses)."""
+
+    async def _get_transactions_summary():
+        client = await get_monarch_client()
+        return await client.get_transactions_summary()
+
+    summary = run_async(_get_transactions_summary())
+
+    return json.dumps(summary, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting subscription details")
+def get_subscription_details() -> str:
+    """Get Monarch Money subscription status and details."""
+
+    async def _get_subscription_details():
+        client = await get_monarch_client()
+        return await client.get_subscription_details()
+
+    details = run_async(_get_subscription_details())
+
+    return json.dumps(details, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting institutions")
+def get_institutions() -> str:
+    """Get all connected financial institutions and their connection status."""
+
+    async def _get_institutions():
+        client = await get_monarch_client()
+        return await client.get_institutions()
+
+    institutions = run_async(_get_institutions())
+
+    return json.dumps(institutions, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting cashflow summary")
+def get_cashflow_summary(
+    limit: int = 100,
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+) -> str:
+    """
+    Get cashflow summary (income, expenses, savings, savings rate).
+
+    Args:
+        limit: Number of records to retrieve (default: 100)
+        start_date: Start date in YYYY-MM-DD format (requires end_date)
+        end_date: End date in YYYY-MM-DD format (requires start_date)
+    """
+    if bool(start_date) != bool(end_date):
+        return json.dumps(
+            {"error": "Both start_date and end_date are required when filtering by date."},
+            indent=2,
+        )
+
+    async def _get_cashflow_summary():
+        client = await get_monarch_client()
+        filters = {}
+        if start_date:
+            filters["start_date"] = start_date
+        if end_date:
+            filters["end_date"] = end_date
+        return await client.get_cashflow_summary(limit=limit, **filters)
+
+    summary = run_async(_get_cashflow_summary())
+
+    return json.dumps(summary, indent=2, default=str)
+
+
+# ── Phase 3: Mutation tools ──────────────────────────────────────────
+
+
+@mcp.tool()
+@_handle_mcp_errors("setting budget amount")
+def set_budget_amount(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    amount: float,
+    category_id: Optional[str] = None,
+    category_group_id: Optional[str] = None,
+    timeframe: str = "month",
+    start_date: Optional[str] = None,
+    apply_to_future: bool = False,
+) -> str:
+    """
+    Set or update a budget amount for a category or category group.
+
+    Args:
+        amount: The budget amount to set
+        category_id: Category ID (mutually exclusive with category_group_id)
+        category_group_id: Category group ID (mutually exclusive with category_id)
+        timeframe: Budget timeframe - "month" or "week" (default: "month")
+        start_date: Budget start date in YYYY-MM-DD format
+        apply_to_future: Whether to apply this amount to future periods (default: False)
+    """
+    if (category_id is None) == (category_group_id is None):
+        return json.dumps(
+            {"error": "Provide exactly one of category_id or category_group_id."},
+            indent=2,
+        )
+
+    async def _set_budget_amount():
+        client = await get_monarch_client()
+        kwargs = {
+            "amount": amount,
+            "timeframe": timeframe,
+            "apply_to_future": apply_to_future,
+        }
+        if category_id is not None:
+            kwargs["category_id"] = category_id
+        if category_group_id is not None:
+            kwargs["category_group_id"] = category_group_id
+        if start_date is not None:
+            kwargs["start_date"] = start_date
+        return await client.set_budget_amount(**kwargs)
+
+    result = run_async(_set_budget_amount())
+
+    return json.dumps(result, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting transaction splits")
+def get_transaction_splits(transaction_id: str) -> str:
+    """
+    Get split information for a transaction.
+
+    Args:
+        transaction_id: The ID of the transaction
+    """
+
+    async def _get_transaction_splits():
+        client = await get_monarch_client()
+        return await client.get_transaction_splits(transaction_id)
+
+    splits = run_async(_get_transaction_splits())
+
+    return json.dumps(splits, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("updating transaction splits")
+def update_transaction_splits(
+    transaction_id: str,
+    split_data: List[Dict[str, Any]],
+) -> str:
+    """
+    Create, modify, or delete splits for a transaction.
+
+    Args:
+        transaction_id: The ID of the transaction to split
+        split_data: List of split objects, each with keys: merchantName, amount, categoryId.
+            Sum of split amounts must equal the original transaction amount.
+            Pass an empty list to remove all splits.
+    """
+
+    async def _update_transaction_splits():
+        client = await get_monarch_client()
+        return await client.update_transaction_splits(transaction_id, split_data)
+
+    result = run_async(_update_transaction_splits())
+
+    return json.dumps(result, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("creating transaction category")
+def create_transaction_category(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    group_id: str,
+    name: str,
+    icon: str = "\u2753",
+    rollover_enabled: bool = False,
+    rollover_type: str = "monthly",
+    rollover_start_month: Optional[str] = None,
+) -> str:
+    """
+    Create a new transaction category in Monarch Money.
+
+    Args:
+        group_id: The category group ID this category belongs to
+        name: The category name
+        icon: Category icon (default: question mark emoji)
+        rollover_enabled: Whether budget rollover is enabled (default: False)
+        rollover_type: Rollover type - "monthly" (default: "monthly")
+        rollover_start_month: Rollover start in YYYY-MM-DD (default: 1st of month)
+    """
+
+    async def _create_transaction_category():
+        client = await get_monarch_client()
+        kwargs = {
+            "group_id": group_id,
+            "transaction_category_name": name,
+            "icon": icon,
+            "rollover_enabled": rollover_enabled,
+            "rollover_type": rollover_type,
+        }
+        if rollover_start_month is not None:
+            kwargs["rollover_start_month"] = datetime.strptime(
+                rollover_start_month, "%Y-%m-%d",
+            )
+        return await client.create_transaction_category(**kwargs)
+
+    result = run_async(_create_transaction_category())
+
+    return json.dumps(result, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("deleting transaction category")
+def delete_transaction_category(category_id: str) -> str:
+    """
+    Delete a transaction category from Monarch Money.
+
+    Args:
+        category_id: The ID of the category to delete
+    """
+
+    async def _delete_transaction_category():
+        client = await get_monarch_client()
+        return await client.delete_transaction_category(category_id)
+
+    result = run_async(_delete_transaction_category())
+
+    return json.dumps(
+        {"deleted": True, "category_id": category_id, "result": result},
+        indent=2,
+        default=str,
+    )
+
+
+@mcp.tool()
+@_handle_mcp_errors("creating manual account")
+def create_manual_account(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    account_name: str,
+    account_type: str,
+    account_sub_type: str,
+    is_in_net_worth: bool,
+    account_balance: float = 0,
+) -> str:
+    """
+    Create a new manual account in Monarch Money.
+
+    Args:
+        account_name: Name for the account
+        account_type: Account type (use get_account_type_options to see valid types)
+        account_sub_type: Account sub-type
+        is_in_net_worth: Whether to include in net worth calculation
+        account_balance: Starting balance (default: 0)
+    """
+
+    async def _create_manual_account():
+        client = await get_monarch_client()
+        return await client.create_manual_account(
+            account_type=account_type,
+            account_sub_type=account_sub_type,
+            is_in_net_worth=is_in_net_worth,
+            account_name=account_name,
+            account_balance=account_balance,
+        )
+
+    result = run_async(_create_manual_account())
+
+    return json.dumps(result, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("updating account")
+def update_account(  # pylint: disable=too-many-arguments,too-many-positional-arguments
+    account_id: str,
+    account_name: Optional[str] = None,
+    account_balance: Optional[float] = None,
+    account_type: Optional[str] = None,
+    account_sub_type: Optional[str] = None,
+    include_in_net_worth: Optional[bool] = None,
+    hide_from_summary_list: Optional[bool] = None,
+    hide_transactions_from_reports: Optional[bool] = None,
+) -> str:
+    """
+    Update an existing account in Monarch Money.
+
+    Args:
+        account_id: The ID of the account to update
+        account_name: New account name
+        account_balance: New account balance
+        account_type: New account type
+        account_sub_type: New account sub-type
+        include_in_net_worth: Whether to include in net worth
+        hide_from_summary_list: Whether to hide from summary list
+        hide_transactions_from_reports: Whether to hide transactions from reports
+    """
+
+    async def _update_account():
+        client = await get_monarch_client()
+        update_data = {"account_id": account_id}
+        if account_name is not None:
+            update_data["account_name"] = account_name
+        if account_balance is not None:
+            update_data["account_balance"] = account_balance
+        if account_type is not None:
+            update_data["account_type"] = account_type
+        if account_sub_type is not None:
+            update_data["account_sub_type"] = account_sub_type
+        if include_in_net_worth is not None:
+            update_data["include_in_net_worth"] = include_in_net_worth
+        if hide_from_summary_list is not None:
+            update_data["hide_from_summary_list"] = hide_from_summary_list
+        if hide_transactions_from_reports is not None:
+            update_data["hide_transactions_from_reports"] = hide_transactions_from_reports
+        return await client.update_account(**update_data)
+
+    result = run_async(_update_account())
+
+    return json.dumps(result, indent=2, default=str)
+
+
+# ── Phase 4: Analytics & history tools ────────────────────────────────
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting account history")
+def get_account_history(account_id: str) -> str:
+    """
+    Get historical balance snapshots for an account.
+
+    Args:
+        account_id: The ID of the account
+    """
+
+    async def _get_account_history():
+        client = await get_monarch_client()
+        return await client.get_account_history(account_id)
+
+    history = run_async(_get_account_history())
+
+    return json.dumps(history, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting recent account balances")
+def get_recent_account_balances(start_date: Optional[str] = None) -> str:
+    """
+    Get daily balance for all accounts from a start date.
+
+    Args:
+        start_date: Start date in YYYY-MM-DD format (optional)
+    """
+
+    async def _get_recent_account_balances():
+        client = await get_monarch_client()
+        kwargs = {}
+        if start_date is not None:
+            kwargs["start_date"] = start_date
+        return await client.get_recent_account_balances(**kwargs)
+
+    balances = run_async(_get_recent_account_balances())
+
+    return json.dumps(balances, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting account snapshots by type")
+def get_account_snapshots_by_type(start_date: str, timeframe: str) -> str:
+    """
+    Get net value snapshots grouped by account type.
+
+    Args:
+        start_date: Start date in YYYY-MM-DD format
+        timeframe: Aggregation period - "month" or "year"
+    """
+    if timeframe not in ("month", "year"):
+        return json.dumps(
+            {"error": "timeframe must be 'month' or 'year'."},
+            indent=2,
+        )
+
+    async def _get_account_snapshots_by_type():
+        client = await get_monarch_client()
+        return await client.get_account_snapshots_by_type(start_date, timeframe)
+
+    snapshots = run_async(_get_account_snapshots_by_type())
+
+    return json.dumps(snapshots, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting aggregate snapshots")
+def get_aggregate_snapshots(
+    start_date: Optional[str] = None,
+    end_date: Optional[str] = None,
+    account_type: Optional[str] = None,
+) -> str:
+    """
+    Get daily aggregate net value of all accounts.
+
+    Args:
+        start_date: Start date in YYYY-MM-DD format
+        end_date: End date in YYYY-MM-DD format
+        account_type: Filter by account type (optional)
+    """
+
+    async def _get_aggregate_snapshots():
+        client = await get_monarch_client()
+        kwargs = {}
+        # monarchmoney library requires date objects (not strings) for this method
+        if start_date is not None:
+            kwargs["start_date"] = datetime.strptime(start_date, "%Y-%m-%d").date()
+        if end_date is not None:
+            kwargs["end_date"] = datetime.strptime(end_date, "%Y-%m-%d").date()
+        if account_type is not None:
+            kwargs["account_type"] = account_type
+        return await client.get_aggregate_snapshots(**kwargs)
+
+    snapshots = run_async(_get_aggregate_snapshots())
+
+    return json.dumps(snapshots, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting account type options")
+def get_account_type_options() -> str:
+    """Get available account types and sub-types for creating manual accounts."""
+
+    async def _get_account_type_options():
+        client = await get_monarch_client()
+        return await client.get_account_type_options()
+
+    options = run_async(_get_account_type_options())
+
+    return json.dumps(options, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("getting credit history")
+def get_credit_history() -> str:
+    """Get credit score history and related details."""
+
+    async def _get_credit_history():
+        client = await get_monarch_client()
+        return await client.get_credit_history()
+
+    history = run_async(_get_credit_history())
+
+    return json.dumps(history, indent=2, default=str)
+
+
+@mcp.tool()
+@_handle_mcp_errors("deleting account")
+def delete_account(account_id: str) -> str:
+    """
+    Delete an account from Monarch Money. This action is irreversible.
+
+    Args:
+        account_id: The ID of the account to delete
+    """
+
+    async def _delete_account():
+        client = await get_monarch_client()
+        return await client.delete_account(account_id)
+
+    result = run_async(_delete_account())
+
+    return json.dumps(
+        {"deleted": True, "account_id": account_id, "result": result},
+        indent=2,
+        default=str,
+    )
 
 
 def main():

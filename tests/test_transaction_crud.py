@@ -57,6 +57,7 @@ def test_create_happy(mock_monarch_client):
         merchant_name="Coffee Shop",
         category_id="cat-1",
         notes="Morning coffee",
+        update_balance=False,
     )
 
 
@@ -190,6 +191,37 @@ def test_create_unicode_merchant(mock_monarch_client):
     )
 
     assert result["merchant"]["name"] == name
+
+
+def test_create_with_update_balance(mock_monarch_client):
+    mock_monarch_client.create_transaction.return_value = _api_txn()
+
+    create_transaction(
+        account_id="acc-1",
+        amount=-42.50,
+        merchant_name="Coffee Shop",
+        category_id="cat-1",
+        date="2025-01-15",
+        update_balance=True,
+    )
+
+    call_kwargs = mock_monarch_client.create_transaction.call_args[1]
+    assert call_kwargs["update_balance"] is True
+
+
+def test_create_default_update_balance(mock_monarch_client):
+    mock_monarch_client.create_transaction.return_value = _api_txn()
+
+    create_transaction(
+        account_id="acc-1",
+        amount=-10.0,
+        merchant_name="Store",
+        category_id="cat-1",
+        date="2025-01-15",
+    )
+
+    call_kwargs = mock_monarch_client.create_transaction.call_args[1]
+    assert call_kwargs["update_balance"] is False
 
 
 # ===================================================================

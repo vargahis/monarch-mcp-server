@@ -78,17 +78,38 @@ Once authenticated, use these tools directly in Claude Desktop:
 ### 📊 Account Management
 - **Get Accounts**: View all linked financial accounts with balances and institution info
 - **Get Account Holdings**: See securities and investments in investment accounts
+- **Create Manual Account**: Add manual accounts (property, crypto, etc.)
+- **Update Account**: Modify account settings (name, balance, net worth inclusion, visibility)
+- **Delete Account**: Remove an account permanently
 - **Refresh Accounts**: Request real-time data updates from financial institutions
+- **Get Institutions**: View connected financial institutions and their sync status
+- **Account History & Snapshots**: Historical balance data, daily balances, and net worth snapshots
 
 ### 💰 Transaction Access
-- **Get Transactions**: Fetch transaction data with filtering by date, account, and pagination
-- **Create Transaction**: Add new transactions to accounts
+- **Get Transactions**: Fetch with advanced filtering — search, categories, tags, date ranges, account, boolean flags (has notes, is recurring, is split, etc.)
+- **Get Transaction Details**: Full detail for a single transaction including attachments and splits
+- **Create Transaction**: Add new transactions with optional balance update
 - **Update Transaction**: Modify existing transactions (amount, description, category, date)
-- **Tag Management**: Create, view, and apply tags to organize and categorize transactions
+- **Transaction Splits**: View and manage split transactions
+- **Tag Management**: Create, view, delete, and apply tags to organize transactions
 
 ### 📈 Financial Analysis
 - **Get Budgets**: Access budget information including spent amounts and remaining balances
-- **Get Cashflow**: Analyze financial cashflow over specified date ranges with income/expense breakdowns
+- **Set Budget Amount**: Set or update budget amounts for categories or category groups
+- **Get Cashflow**: Analyze financial cashflow with income/expense breakdowns
+- **Get Cashflow Summary**: Quick summary of income, expenses, savings, and savings rate
+- **Get Transactions Summary**: Aggregate stats (count, sum, avg, max, income, expenses)
+- **Get Recurring Transactions**: View subscriptions and recurring bills
+- **Get Credit History**: Credit score history and trends
+
+### 🏷️ Category Management
+- **Get Categories**: View all transaction categories and their groups
+- **Create Category**: Add new categories with optional rollover settings
+- **Delete Category**: Remove a transaction category
+
+### 📋 Account Info
+- **Get Subscription Details**: Check Monarch Money subscription status
+- **Get Account Type Options**: View available account types for manual account creation
 
 ### 🔐 Secure Authentication
 - **Auto Browser Login**: A login page opens in your browser automatically when needed
@@ -99,21 +120,53 @@ Once authenticated, use these tools directly in Claude Desktop:
 
 ## 🛠️ Available Tools
 
-| Tool | Description | Parameters |
-|------|-------------|------------|
+| Tool | Description | Key Parameters |
+|------|-------------|----------------|
+| **Auth** | | |
 | `setup_authentication` | Get setup instructions | None |
 | `check_auth_status` | Check authentication status | None |
+| `debug_session_loading` | Debug keyring issues | None |
+| **Accounts** | | |
 | `get_accounts` | Get all financial accounts | None |
-| `get_transactions` | Get transactions with filtering | `limit`, `offset`, `start_date`, `end_date`, `account_id` |
-| `get_budgets` | Get budget information | None |
-| `get_cashflow` | Get cashflow analysis | `start_date`, `end_date` |
 | `get_account_holdings` | Get investment holdings | `account_id` |
-| `create_transaction` | Create new transaction | `account_id`, `amount`, `description`, `date`, `category_id`, `merchant_name` |
-| `update_transaction` | Update existing transaction | `transaction_id`, `amount`, `description`, `category_id`, `date` |
+| `create_manual_account` | Create manual account | `account_name`, `account_type`, `account_sub_type`, `is_in_net_worth` |
+| `update_account` | Update account settings | `account_id`, `account_name`, `account_balance`, `include_in_net_worth`, ... |
+| `delete_account` | Delete an account | `account_id` |
 | `refresh_accounts` | Request account data refresh | None |
-| `get_transaction_tags` | Get all transaction tags | None |
-| `create_transaction_tag` | Create new transaction tag | `name`, `color` |
+| `get_institutions` | Get connected institutions | None |
+| `get_account_type_options` | Get valid account types | None |
+| `get_account_history` | Get historical balance data | `account_id` |
+| `get_recent_account_balances` | Get daily balances | `start_date` |
+| `get_account_snapshots_by_type` | Net worth by account type | `start_date`, `timeframe` |
+| `get_aggregate_snapshots` | Daily aggregate net value | `start_date`, `end_date`, `account_type` |
+| **Transactions** | | |
+| `get_transactions` | Get transactions with filtering | `limit`, `offset`, `start_date`, `end_date`, `account_id`, `search`, `category_ids`, `tag_ids`, `is_recurring`, ... |
+| `get_transaction_details` | Get full transaction detail | `transaction_id`, `redirect_posted` |
+| `get_transactions_summary` | Aggregate transaction stats | None |
+| `create_transaction` | Create new transaction | `account_id`, `amount`, `merchant_name`, `category_id`, `date`, `notes`, `update_balance` |
+| `update_transaction` | Update existing transaction | `transaction_id`, `amount`, `merchant_name`, `category_id`, `date`, `notes`, ... |
+| `delete_transaction` | Delete a transaction | `transaction_id` |
+| `get_transaction_splits` | Get split information | `transaction_id` |
+| `update_transaction_splits` | Create/modify/delete splits | `transaction_id`, `split_data` |
+| `get_recurring_transactions` | Get recurring transactions | `start_date`, `end_date` |
+| **Tags** | | |
+| `get_transaction_tags` | Get all tags | None |
+| `create_transaction_tag` | Create new tag | `name`, `color` |
+| `delete_transaction_tag` | Delete a tag | `tag_id` |
 | `set_transaction_tags` | Set tags on a transaction | `transaction_id`, `tag_ids` |
+| **Categories** | | |
+| `get_transaction_categories` | Get all categories | None |
+| `get_transaction_category_groups` | Get category groups | None |
+| `create_transaction_category` | Create a category | `group_id`, `name`, `icon`, `rollover_enabled` |
+| `delete_transaction_category` | Delete a category | `category_id` |
+| **Budgets & Cashflow** | | |
+| `get_budgets` | Get budget information | `start_date`, `end_date`, `use_v2_goals` |
+| `set_budget_amount` | Set budget for category | `amount`, `category_id` or `category_group_id`, `timeframe`, `apply_to_future` |
+| `get_cashflow` | Get cashflow analysis | `start_date`, `end_date` |
+| `get_cashflow_summary` | Get cashflow summary | `limit`, `start_date`, `end_date` |
+| **Other** | | |
+| `get_subscription_details` | Get subscription status | None |
+| `get_credit_history` | Get credit score history | None |
 
 ## 📝 Usage Examples
 

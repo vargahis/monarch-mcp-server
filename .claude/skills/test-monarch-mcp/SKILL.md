@@ -1,13 +1,13 @@
 ---
 name: test-monarch-mcp
-description: Systematically test all 16 Monarch Money MCP tools — happy paths, edge cases, and error handling. Account-agnostic (discovers IDs at runtime) and self-cleaning (deletes everything it creates).
+description: Systematically test all 39 Monarch Money MCP tools — happy paths, edge cases, and error handling. Account-agnostic (discovers IDs at runtime) and self-cleaning (deletes everything it creates).
 user_invocable: true
 ---
 
 # Test Monarch MCP Skill
 
 You are executing a comprehensive test suite for the Monarch Money MCP server.
-Run all 77 tests across 7 phases, track results, and clean up after yourself.
+Run all 127 tests across 12 phases, track results, and clean up after yourself.
 
 ---
 
@@ -51,11 +51,13 @@ The state file is `mcp-test-state.json` in the project root (`C:\dev\monarch-mcp
   },
   "created_resources": {
     "transactions": [],
-    "tags": []
+    "tags": [],
+    "categories": [],
+    "accounts": []
   },
   "results": {},
   "summary": {
-    "total": 77,
+    "total": 127,
     "passed": 0,
     "failed": 0,
     "skipped": 0
@@ -78,6 +80,30 @@ The state file is `mcp-test-state.json` in the project root (`C:\dev\monarch-mcp
 - **All other phases: log and continue.** If a test fails, record `FAIL` with details and move to the next test.
 - **Cleanup always runs.** Even if a phase throws an unexpected error, jump to cleanup.
 - **Test data naming:** All test merchants are prefixed with `MCP-Test-` and all test tags are prefixed with `MCP-Test-` for easy identification.
+
+---
+
+## Pre-flight Warning
+
+Before starting any test work (including Phase 0), display this warning and **STOP and wait for explicit user approval**:
+
+---
+
+**WARNING: This test suite operates on your live Monarch Money account.**
+
+- It **creates and deletes** transactions, tags, categories, and accounts.
+- It **temporarily modifies** an existing transaction (then reverts it).
+- The test is designed to clean up everything it creates, but **if something goes wrong** (network error, timeout, context limit), **cleanup may be incomplete** and unwanted changes could remain in your account.
+- All test-created data is prefixed with `MCP-Test-` for easy manual identification.
+- If the session is interrupted, you can **resume where you left off** by invoking this skill again — it will detect the saved progress and offer to continue.
+
+**Do you want to continue?**
+
+---
+
+Do NOT proceed until the user explicitly confirms. If the user declines, stop immediately.
+
+This warning applies to **fresh runs only**. When resuming an in-progress run or performing cleanup-only, skip this warning (the user already accepted the risk).
 
 ---
 
@@ -139,7 +165,7 @@ After completing all tests, update state file: `last_completed_phase: 3`, add re
 
 ---
 
-## Phase 4 — Budgets & Cashflow (12 tests)
+## Phase 4 — Budgets, Cashflow & Budget Amounts (15 tests)
 
 Load and follow: `references/budgets-and-cashflow.md`
 
@@ -176,6 +202,60 @@ Load and follow: `references/transaction-tagging.md`
 This phase creates its own temporary tag(s) for testing. Track them in `created_resources.tags`.
 
 After completing all tests, update state file: `last_completed_phase: 7`, add results.
+
+---
+
+## Phase 8 — Categories (10 tests)
+
+Load and follow: `references/categories.md`
+
+Tests `get_transaction_categories`, `get_transaction_category_groups`, `create_transaction_category`, and `delete_transaction_category`.
+
+**Important:** Track every created category ID in `created_resources.categories` immediately after creation.
+
+After completing all tests, update state file: `last_completed_phase: 8`, add results.
+
+---
+
+## Phase 9 — Transaction Details & Splits (8 tests)
+
+Load and follow: `references/transaction-details-and-splits.md`
+
+Tests `get_transaction_details`, `get_transaction_splits`, and `update_transaction_splits`.
+
+After completing all tests, update state file: `last_completed_phase: 9`, add results.
+
+---
+
+## Phase 10 — Read-Only Tools (9 tests)
+
+Load and follow: `references/read-only-tools.md`
+
+Tests `get_transactions_summary`, `get_subscription_details`, `get_institutions`, `get_cashflow_summary`, and `get_recurring_transactions`.
+
+After completing all tests, update state file: `last_completed_phase: 10`, add results.
+
+---
+
+## Phase 11 — Account Management (10 tests)
+
+Load and follow: `references/account-management.md`
+
+Tests `create_manual_account`, `update_account`, `delete_account`, `get_account_type_options`, `get_account_history`, `get_recent_account_balances`, `get_account_snapshots_by_type`, `get_aggregate_snapshots`.
+
+**Important:** Track every created account ID in `created_resources.accounts` immediately after creation.
+
+After completing all tests, update state file: `last_completed_phase: 11`, add results.
+
+---
+
+## Phase 12 — Analytics Tools (5 tests)
+
+Load and follow: `references/analytics-tools.md`
+
+Tests `get_credit_history`, advanced transaction search filters.
+
+After completing all tests, update state file: `last_completed_phase: 12`, add results.
 
 ---
 
@@ -222,6 +302,22 @@ Log success/failure for each. Continue on failure.
 For each ID in `created_resources.tags`:
 ```
 delete_transaction_tag(tag_id = {id})
+```
+Log success/failure for each. Continue on failure.
+
+### Step 4b: Delete Created Categories
+
+For each ID in `created_resources.categories`:
+```
+delete_transaction_category(category_id = {id})
+```
+Log success/failure for each. Continue on failure.
+
+### Step 4c: Delete Created Accounts
+
+For each ID in `created_resources.accounts`:
+```
+delete_account(account_id = {id})
 ```
 Log success/failure for each. Continue on failure.
 
