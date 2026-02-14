@@ -16,98 +16,61 @@ A Model Context Protocol (MCP) server for integrating with the Monarch Money per
 
 > **Why TestPyPI?** The package is currently in pre-release testing. Once validated, it will be published to the main Python Package Index (PyPI) and the install command will simplify to `pip install monarch-mcp-server`.
 
-1. **Install the package**:
-   ```bash
-   pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ monarch-mcp-server
-   ```
+```bash
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ monarch-mcp-server
+```
 
-2. **Configure Claude Desktop**:
-   Add this to your Claude Desktop configuration file:
-
-   **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-
-   ```json
-   {
-     "mcpServers": {
-       "Monarch Money": {
-         "command": "python3",
-         "args": ["-m", "monarch_mcp_server"]
-       }
-     }
-   }
-   ```
-
-   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
-
-   ```json
-   {
-     "mcpServers": {
-       "Monarch Money": {
-         "command": "py",
-         "args": ["-m", "monarch_mcp_server"]
-       }
-     }
-   }
-   ```
-
-   > **Note**: The `"command"` value must be whatever launches Python on your system.
-   > Common values: `python3` (macOS/Linux), `py` (Windows), or `python`.
-   > Run `python3 --version` (or `py --version`) in a terminal to confirm which one works.
-
-3. **Restart Claude Desktop**
+Then [configure Claude Desktop](#configure-claude-desktop) and restart it.
 
 ### Option C: From Source
 
-#### 1. Installation
+```bash
+git clone https://github.com/vargahis/monarch-mcp-server.git
+cd monarch-mcp-server
+pip install -r requirements.txt
+pip install -e .
+```
 
-1. **Clone this repository**:
-   ```bash
-   git clone https://github.com/vargahis/monarch-mcp-server.git
-   cd monarch-mcp-server
-   ```
+Then [configure Claude Desktop](#configure-claude-desktop) and restart it.
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   pip install -e .
-   ```
+### Configure Claude Desktop
 
-3. **Configure Claude Desktop**:
-   Add this to your Claude Desktop configuration file:
+Add this to your Claude Desktop configuration file:
 
-   **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 
-   ```json
-   {
-     "mcpServers": {
-       "Monarch Money": {
-         "command": "python3",
-         "args": ["-m", "monarch_mcp_server"]
-       }
-     }
-   }
-   ```
+```json
+{
+  "mcpServers": {
+    "Monarch Money": {
+      "command": "python3",
+      "args": ["-m", "monarch_mcp_server"]
+    }
+  }
+}
+```
 
-   **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
-   ```json
-   {
-     "mcpServers": {
-       "Monarch Money": {
-         "command": "py",
-         "args": ["-m", "monarch_mcp_server"]
-       }
-     }
-   }
-   ```
+```json
+{
+  "mcpServers": {
+    "Monarch Money": {
+      "command": "py",
+      "args": ["-m", "monarch_mcp_server"]
+    }
+  }
+}
+```
 
-   > **Note**: If you installed into a virtual environment, use the full path to that
-   > environment's Python interpreter as the `"command"` value instead (e.g.,
-   > `/path/to/venv/bin/python3` on macOS/Linux or `C:\\path\\to\\venv\\Scripts\\python.exe` on Windows).
+> **Note**: The `"command"` value must be whatever launches Python on your system.
+> Common values: `python3` (macOS/Linux), `py` (Windows), or `python`.
+> If you installed into a virtual environment, use the full path to that environment's
+> interpreter instead (e.g., `/path/to/venv/bin/python3` or `C:\path\to\venv\Scripts\python.exe`).
 
-4. **Restart Claude Desktop**
+After saving the config, **restart Claude Desktop**.
 
-### 2. Authentication
+### Authentication
 
 Authentication happens **automatically in your browser** the first time the MCP server starts without a saved session.
 
@@ -121,7 +84,7 @@ Authentication happens **automatically in your browser** the first time the MCP 
 > `python login_setup.py` in a terminal. This is useful in headless environments
 > where a browser is not available.
 
-### 3. Start Using in Claude Desktop
+### Start Using in Claude Desktop
 
 Once authenticated, use these tools directly in Claude Desktop:
 - `get_accounts` - View all your financial accounts
