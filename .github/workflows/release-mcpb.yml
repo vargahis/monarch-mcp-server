@@ -21,6 +21,11 @@ jobs:
       - name: Install mcpb CLI
         run: npm install -g @anthropic-ai/mcpb
 
+      - name: Inject version from git tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+
       - name: Validate manifest
         run: mcpb validate .
 
@@ -28,7 +33,7 @@ jobs:
         run: mcpb pack . monarch-money-mcp-${{ github.ref_name }}.mcpb
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b  # v2
         with:
           files: monarch-money-mcp-${{ github.ref_name }}.mcpb
           generate_release_notes: true

@@ -1,6 +1,7 @@
 .git/
 .github/
 .claude/
+CLAUDE.md
 tests/
 venv/
 *.egg-info/
@@ -9,8 +10,9 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.mcpb
+*.session
+*.pickle
 .env
 .coverage
-nul
 login_setup.py
 MISSING_FEATURES.md
