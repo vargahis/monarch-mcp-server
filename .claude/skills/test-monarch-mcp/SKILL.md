@@ -83,6 +83,30 @@ The state file is `mcp-test-state.json` in the project root (`C:\dev\monarch-mcp
 
 ---
 
+## Pre-flight Warning
+
+Before starting any test work (including Phase 0), display this warning and **STOP and wait for explicit user approval**:
+
+---
+
+**WARNING: This test suite operates on your live Monarch Money account.**
+
+- It **creates and deletes** transactions, tags, categories, and accounts.
+- It **temporarily modifies** an existing transaction (then reverts it).
+- The test is designed to clean up everything it creates, but **if something goes wrong** (network error, timeout, context limit), **cleanup may be incomplete** and unwanted changes could remain in your account.
+- All test-created data is prefixed with `MCP-Test-` for easy manual identification.
+- If the session is interrupted, you can **resume where you left off** by invoking this skill again — it will detect the saved progress and offer to continue.
+
+**Do you want to continue?**
+
+---
+
+Do NOT proceed until the user explicitly confirms. If the user declines, stop immediately.
+
+This warning applies to **fresh runs only**. When resuming an in-progress run or performing cleanup-only, skip this warning (the user already accepted the risk).
+
+---
+
 ## Phase 0 — Discovery
 
 This phase runs first. No reference file — execute inline.
