@@ -97,3 +97,6 @@ logs/
 tmp/
 temp/
 .tmp/
+
+# Windows null device artifact
+nul
