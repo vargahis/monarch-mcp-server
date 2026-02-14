@@ -75,6 +75,7 @@ nul
 *.pickle
 *.session
 *.json
+!manifest.json
 .env*
 !.env.example
 auth_tokens/

@@ -1,0 +1,16 @@
+.git/
+.github/
+.claude/
+tests/
+venv/
+*.egg-info/
+__pycache__/
+.mypy_cache/
+.pytest_cache/
+*.pyc
+*.mcpb
+.env
+.coverage
+nul
+login_setup.py
+MISSING_FEATURES.md
