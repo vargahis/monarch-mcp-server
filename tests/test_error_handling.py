@@ -105,7 +105,7 @@ async def test_tool_runtime_error(mcp_client, mock_monarch_client):
     """RuntimeError (e.g., auth recovery) returns error string."""
     mock_monarch_client.get_accounts.side_effect = RuntimeError("session expired")
 
-    result = (await mcp_client.call_tool("get_accounts"))[0].text
+    result = (await mcp_client.call_tool("get_accounts")).content[0].text
 
     assert "Error" in result
     assert "session expired" in result
@@ -117,7 +117,7 @@ async def test_tool_transport_server_error(mcp_client, mock_monarch_client):
         "Internal Server Error", code=500,
     )
 
-    result = (await mcp_client.call_tool("get_accounts"))[0].text
+    result = (await mcp_client.call_tool("get_accounts")).content[0].text
 
     assert "Error" in result
     assert "500" in result
@@ -129,7 +129,7 @@ async def test_tool_transport_query_error(mcp_client, mock_monarch_client):
         "Validation error",
     )
 
-    result = (await mcp_client.call_tool("get_accounts"))[0].text
+    result = (await mcp_client.call_tool("get_accounts")).content[0].text
 
     assert "Error" in result
     assert "query" in result.lower()
@@ -141,7 +141,7 @@ async def test_tool_transport_error(mcp_client, mock_monarch_client):
         "Connection refused",
     )
 
-    result = (await mcp_client.call_tool("get_accounts"))[0].text
+    result = (await mcp_client.call_tool("get_accounts")).content[0].text
 
     assert "Error" in result
     assert "connection" in result.lower()
@@ -151,7 +151,7 @@ async def test_tool_unexpected_error(mcp_client, mock_monarch_client):
     """Generic Exception returns catch-all error."""
     mock_monarch_client.get_accounts.side_effect = ValueError("weird error")
 
-    result = (await mcp_client.call_tool("get_accounts"))[0].text
+    result = (await mcp_client.call_tool("get_accounts")).content[0].text
 
     assert "Error" in result
     assert "weird error" in result

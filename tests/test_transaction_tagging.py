@@ -12,7 +12,7 @@ async def test_apply_single_tag(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "set_transaction_tags", {"transaction_id": "txn-1", "tag_ids": ["tag-1"]}
-        ))[0].text
+        )).content[0].text
     )
 
     assert "setTransactionTags" in result
@@ -35,7 +35,7 @@ async def test_apply_multiple_tags(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "set_transaction_tags",
             {"transaction_id": "txn-1", "tag_ids": ["tag-1", "tag-2"]},
-        ))[0].text
+        )).content[0].text
     )
 
     tags = result["setTransactionTags"]["transaction"]["tags"]
@@ -53,7 +53,7 @@ async def test_remove_all_tags(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "set_transaction_tags", {"transaction_id": "txn-1", "tag_ids": []}
-        ))[0].text
+        )).content[0].text
     )
 
     tags = result["setTransactionTags"]["transaction"]["tags"]
@@ -68,7 +68,7 @@ async def test_invalid_transaction_id(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "set_transaction_tags", {"transaction_id": "bad-id", "tag_ids": ["tag-1"]}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Transaction not found" in result
@@ -81,7 +81,7 @@ async def test_nonexistent_tag_id(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "set_transaction_tags", {"transaction_id": "txn-1", "tag_ids": ["bad-tag"]}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Tag not found" in result

@@ -27,7 +27,7 @@ async def test_budgets_both_dates(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_budgets", {"start_date": "2025-01-01", "end_date": "2025-01-31"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert "budgetData" in result
@@ -39,7 +39,7 @@ async def test_budgets_both_dates(mcp_client, mock_monarch_client):
 async def test_budgets_no_dates(mcp_client, mock_monarch_client):
     mock_monarch_client.get_budgets.return_value = SAMPLE_BUDGET
 
-    result = json.loads((await mcp_client.call_tool("get_budgets"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_budgets")).content[0].text)
 
     assert "budgetData" in result
     mock_monarch_client.get_budgets.assert_called_once_with(use_v2_goals=True)
@@ -47,14 +47,14 @@ async def test_budgets_no_dates(mcp_client, mock_monarch_client):
 
 async def test_budgets_only_start(mcp_client):
     result = json.loads(
-        (await mcp_client.call_tool("get_budgets", {"start_date": "2025-01-01"}))[0].text
+        (await mcp_client.call_tool("get_budgets", {"start_date": "2025-01-01"})).content[0].text
     )
     assert "error" in result
 
 
 async def test_budgets_only_end(mcp_client):
     result = json.loads(
-        (await mcp_client.call_tool("get_budgets", {"end_date": "2025-01-31"}))[0].text
+        (await mcp_client.call_tool("get_budgets", {"end_date": "2025-01-31"})).content[0].text
     )
     assert "error" in result
 
@@ -64,7 +64,7 @@ async def test_budgets_invalid_format(mcp_client, mock_monarch_client):
 
     result = (await mcp_client.call_tool(
         "get_budgets", {"start_date": "bad", "end_date": "bad"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Invalid date" in result
@@ -76,7 +76,7 @@ async def test_budgets_future_dates(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_budgets", {"start_date": "2099-01-01", "end_date": "2099-12-31"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["budgetData"] is None
@@ -109,7 +109,7 @@ async def test_cashflow_both_dates(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_cashflow", {"start_date": "2025-01-01", "end_date": "2025-01-31"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert "summary" in result
@@ -121,7 +121,7 @@ async def test_cashflow_both_dates(mcp_client, mock_monarch_client):
 async def test_cashflow_no_dates(mcp_client, mock_monarch_client):
     mock_monarch_client.get_cashflow.return_value = SAMPLE_CASHFLOW
 
-    result = json.loads((await mcp_client.call_tool("get_cashflow"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_cashflow")).content[0].text)
 
     assert "summary" in result
     mock_monarch_client.get_cashflow.assert_called_once_with()
@@ -129,14 +129,14 @@ async def test_cashflow_no_dates(mcp_client, mock_monarch_client):
 
 async def test_cashflow_only_start(mcp_client):
     result = json.loads(
-        (await mcp_client.call_tool("get_cashflow", {"start_date": "2025-01-01"}))[0].text
+        (await mcp_client.call_tool("get_cashflow", {"start_date": "2025-01-01"})).content[0].text
     )
     assert "error" in result
 
 
 async def test_cashflow_only_end(mcp_client):
     result = json.loads(
-        (await mcp_client.call_tool("get_cashflow", {"end_date": "2025-01-31"}))[0].text
+        (await mcp_client.call_tool("get_cashflow", {"end_date": "2025-01-31"})).content[0].text
     )
     assert "error" in result
 
@@ -146,7 +146,7 @@ async def test_cashflow_invalid_format(mcp_client, mock_monarch_client):
 
     result = (await mcp_client.call_tool(
         "get_cashflow", {"start_date": "bad", "end_date": "bad"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Invalid date" in result
@@ -158,7 +158,7 @@ async def test_cashflow_future_dates(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_cashflow", {"start_date": "2099-01-01", "end_date": "2099-12-31"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["summary"] == []

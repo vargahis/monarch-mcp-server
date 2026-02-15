@@ -12,7 +12,7 @@ async def test_set_budget_with_category(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "set_budget_amount", {"amount": 500.0, "category_id": "cat-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert "updateOrCreateBudgetItem" in result
@@ -32,7 +32,7 @@ async def test_set_budget_with_group(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "set_budget_amount", {"amount": 2000.0, "category_group_id": "grp-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert "updateOrCreateBudgetItem" in result
@@ -49,7 +49,7 @@ async def test_set_budget_both_ids_error(mcp_write_client):
         (await mcp_write_client.call_tool(
             "set_budget_amount",
             {"amount": 100.0, "category_id": "cat-1", "category_group_id": "grp-1"},
-        ))[0].text
+        )).content[0].text
     )
     assert "error" in result
     assert "exactly one" in result["error"].lower()
@@ -59,7 +59,7 @@ async def test_set_budget_neither_id_error(mcp_write_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "set_budget_amount", {"amount": 100.0}
-        ))[0].text
+        )).content[0].text
     )
     assert "error" in result
     assert "exactly one" in result["error"].lower()
@@ -98,6 +98,6 @@ async def test_set_budget_error(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "set_budget_amount", {"amount": 100.0, "category_id": "bad-cat"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result

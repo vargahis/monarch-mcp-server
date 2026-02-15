@@ -87,14 +87,14 @@ def test_get_client_no_credentials(mock_monarch_client, monkeypatch):
 async def test_check_auth_no_token(mcp_client):
     with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
-        result = (await mcp_client.call_tool("check_auth_status"))[0].text
+        result = (await mcp_client.call_tool("check_auth_status")).content[0].text
 
     assert "No authentication token" in result
 
 
 async def test_check_auth_with_env_email(mcp_client, monkeypatch):
     monkeypatch.setenv("MONARCH_EMAIL", "user@test.com")
-    result = (await mcp_client.call_tool("check_auth_status"))[0].text
+    result = (await mcp_client.call_tool("check_auth_status")).content[0].text
 
     assert "user@test.com" in result
 
@@ -102,7 +102,7 @@ async def test_check_auth_with_env_email(mcp_client, monkeypatch):
 async def test_check_auth_exception(mcp_client):
     with patch("monarch_mcp_server.server.secure_session") as mock_ss:
         mock_ss.load_token.side_effect = RuntimeError("boom")
-        result = (await mcp_client.call_tool("check_auth_status"))[0].text
+        result = (await mcp_client.call_tool("check_auth_status")).content[0].text
 
     assert "Error checking auth status" in result
 
@@ -115,7 +115,7 @@ async def test_check_auth_exception(mcp_client):
 async def test_debug_session_no_token(mcp_client):
     with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
-        result = (await mcp_client.call_tool("debug_session_loading"))[0].text
+        result = (await mcp_client.call_tool("debug_session_loading")).content[0].text
 
     assert "No token found" in result
 
@@ -123,7 +123,7 @@ async def test_debug_session_no_token(mcp_client):
 async def test_debug_session_exception(mcp_client):
     with patch("monarch_mcp_server.server.secure_session") as mock_ss:
         mock_ss.load_token.side_effect = RuntimeError("keyring busted")
-        result = (await mcp_client.call_tool("debug_session_loading"))[0].text
+        result = (await mcp_client.call_tool("debug_session_loading")).content[0].text
 
     assert "Keyring access failed" in result
 
@@ -139,7 +139,7 @@ async def test_update_transaction_goal_id(mcp_write_client, mock_monarch_client)
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_transaction", {"transaction_id": "txn-1", "goal_id": "goal-42"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["ok"] is True
@@ -156,7 +156,7 @@ async def test_refresh_accounts_empty(mcp_client, mock_monarch_client):
     mock_monarch_client.get_accounts.return_value = {"accounts": []}
 
     result = json.loads(
-        (await mcp_client.call_tool("refresh_accounts"))[0].text
+        (await mcp_client.call_tool("refresh_accounts")).content[0].text
     )
 
     assert "error" in result

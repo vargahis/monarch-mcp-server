@@ -24,7 +24,7 @@ async def test_create_account_happy(mcp_write_client, mock_monarch_client):
                 "is_in_net_worth": True,
                 "account_balance": 1000.0,
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["createManualAccount"]["id"] == "acc-new"
@@ -69,7 +69,7 @@ async def test_create_account_error(mcp_write_client, mock_monarch_client):
             "account_sub_type": "bad",
             "is_in_net_worth": True,
         },
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -88,7 +88,7 @@ async def test_update_account_name(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_account", {"account_id": "acc-1", "account_name": "New Name"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["displayName"] == "New Name"
@@ -106,7 +106,7 @@ async def test_update_account_balance(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_account", {"account_id": "acc-1", "account_balance": 5000.0}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["currentBalance"] == 5000.0
@@ -118,7 +118,7 @@ async def test_update_account_noop(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_account", {"account_id": "acc-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["id"] == "acc-1"
@@ -150,7 +150,7 @@ async def test_update_account_error(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "update_account", {"account_id": "bad-id", "account_name": "X"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -166,7 +166,7 @@ async def test_delete_account_happy(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "delete_account", {"account_id": "acc-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["deleted"] is True
@@ -180,7 +180,7 @@ async def test_delete_account_error(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "delete_account", {"account_id": "bad-id"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -201,7 +201,7 @@ async def test_account_history_happy(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_account_history", {"account_id": "acc-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert len(result["accountHistory"]) == 2
@@ -213,7 +213,7 @@ async def test_account_history_error(mcp_client, mock_monarch_client):
 
     result = (await mcp_client.call_tool(
         "get_account_history", {"account_id": "bad-id"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -287,7 +287,7 @@ async def test_snapshots_by_type_invalid_timeframe(mcp_client):
         (await mcp_client.call_tool(
             "get_account_snapshots_by_type",
             {"start_date": "2025-01-01", "timeframe": "week"},
-        ))[0].text
+        )).content[0].text
     )
     assert "error" in result
 
@@ -344,7 +344,7 @@ async def test_account_type_options_happy(mcp_client, mock_monarch_client):
     }
 
     result = json.loads(
-        (await mcp_client.call_tool("get_account_type_options"))[0].text
+        (await mcp_client.call_tool("get_account_type_options")).content[0].text
     )
 
     assert len(result["accountTypeOptions"]) == 1
@@ -362,7 +362,7 @@ async def test_credit_history_happy(mcp_client, mock_monarch_client):
     }
 
     result = json.loads(
-        (await mcp_client.call_tool("get_credit_history"))[0].text
+        (await mcp_client.call_tool("get_credit_history")).content[0].text
     )
 
     assert result["creditHistory"][0]["score"] == 750
@@ -373,7 +373,7 @@ async def test_credit_history_empty(mcp_client, mock_monarch_client):
     mock_monarch_client.get_credit_history.return_value = {"creditHistory": []}
 
     result = json.loads(
-        (await mcp_client.call_tool("get_credit_history"))[0].text
+        (await mcp_client.call_tool("get_credit_history")).content[0].text
     )
 
     assert result["creditHistory"] == []

@@ -29,7 +29,7 @@ SAMPLE_SUMMARY = {
 async def test_summary_happy(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions_summary.return_value = SAMPLE_SUMMARY
 
-    result = json.loads((await mcp_client.call_tool("get_transactions_summary"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_transactions_summary")).content[0].text)
 
     assert "transactionsSummary" in result
     mock_monarch_client.get_transactions_summary.assert_called_once()
@@ -38,7 +38,7 @@ async def test_summary_happy(mcp_client, mock_monarch_client):
 async def test_summary_error(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions_summary.side_effect = Exception("API down")
 
-    result = (await mcp_client.call_tool("get_transactions_summary"))[0].text
+    result = (await mcp_client.call_tool("get_transactions_summary")).content[0].text
 
     assert "Error" in result
 
@@ -62,7 +62,7 @@ SAMPLE_SUBSCRIPTION = {
 async def test_subscription_happy(mcp_client, mock_monarch_client):
     mock_monarch_client.get_subscription_details.return_value = SAMPLE_SUBSCRIPTION
 
-    result = json.loads((await mcp_client.call_tool("get_subscription_details"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_subscription_details")).content[0].text)
 
     assert result["subscription"]["hasPremiumEntitlement"] is True
     mock_monarch_client.get_subscription_details.assert_called_once()
@@ -71,7 +71,7 @@ async def test_subscription_happy(mcp_client, mock_monarch_client):
 async def test_subscription_error(mcp_client, mock_monarch_client):
     mock_monarch_client.get_subscription_details.side_effect = Exception("API down")
 
-    result = (await mcp_client.call_tool("get_subscription_details"))[0].text
+    result = (await mcp_client.call_tool("get_subscription_details")).content[0].text
 
     assert "Error" in result
 
@@ -97,7 +97,7 @@ SAMPLE_INSTITUTIONS = {
 async def test_institutions_happy(mcp_client, mock_monarch_client):
     mock_monarch_client.get_institutions.return_value = SAMPLE_INSTITUTIONS
 
-    result = json.loads((await mcp_client.call_tool("get_institutions"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_institutions")).content[0].text)
 
     assert len(result["credentials"]) == 1
     assert result["credentials"][0]["institution"]["name"] == "Chase"
@@ -107,7 +107,7 @@ async def test_institutions_happy(mcp_client, mock_monarch_client):
 async def test_institutions_empty(mcp_client, mock_monarch_client):
     mock_monarch_client.get_institutions.return_value = {"credentials": []}
 
-    result = json.loads((await mcp_client.call_tool("get_institutions"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_institutions")).content[0].text)
 
     assert result["credentials"] == []
 
@@ -115,7 +115,7 @@ async def test_institutions_empty(mcp_client, mock_monarch_client):
 async def test_institutions_error(mcp_client, mock_monarch_client):
     mock_monarch_client.get_institutions.side_effect = Exception("API down")
 
-    result = (await mcp_client.call_tool("get_institutions"))[0].text
+    result = (await mcp_client.call_tool("get_institutions")).content[0].text
 
     assert "Error" in result
 
@@ -142,7 +142,7 @@ SAMPLE_CASHFLOW_SUMMARY = {
 async def test_cashflow_summary_no_dates(mcp_client, mock_monarch_client):
     mock_monarch_client.get_cashflow_summary.return_value = SAMPLE_CASHFLOW_SUMMARY
 
-    result = json.loads((await mcp_client.call_tool("get_cashflow_summary"))[0].text)
+    result = json.loads((await mcp_client.call_tool("get_cashflow_summary")).content[0].text)
 
     assert "summary" in result
     mock_monarch_client.get_cashflow_summary.assert_called_once_with(limit=100)
@@ -173,7 +173,7 @@ async def test_cashflow_summary_only_start_error(mcp_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_cashflow_summary", {"start_date": "2025-01-01"}
-        ))[0].text
+        )).content[0].text
     )
     assert "error" in result
 
@@ -182,7 +182,7 @@ async def test_cashflow_summary_only_end_error(mcp_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_cashflow_summary", {"end_date": "2025-01-31"}
-        ))[0].text
+        )).content[0].text
     )
     assert "error" in result
 
@@ -190,6 +190,6 @@ async def test_cashflow_summary_only_end_error(mcp_client):
 async def test_cashflow_summary_error(mcp_client, mock_monarch_client):
     mock_monarch_client.get_cashflow_summary.side_effect = Exception("API down")
 
-    result = (await mcp_client.call_tool("get_cashflow_summary"))[0].text
+    result = (await mcp_client.call_tool("get_cashflow_summary")).content[0].text
 
     assert "Error" in result

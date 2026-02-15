@@ -44,7 +44,7 @@ async def test_basic_limit(mcp_client, mock_monarch_client):
     )
 
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 10}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 10})).content[0].text
     )
 
     assert len(result) == 10
@@ -115,7 +115,7 @@ async def test_combined_account_and_date(mcp_client, mock_monarch_client):
 
 async def test_only_start_date_error(mcp_client):
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"start_date": "2025-01-01"}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"start_date": "2025-01-01"})).content[0].text
     )
     assert "error" in result
 
@@ -127,7 +127,7 @@ async def test_only_start_date_error(mcp_client):
 
 async def test_only_end_date_error(mcp_client):
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"end_date": "2025-01-31"}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"end_date": "2025-01-31"})).content[0].text
     )
     assert "error" in result
 
@@ -143,10 +143,10 @@ async def test_pagination_no_overlap(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions.side_effect = [_wrap(page1), _wrap(page2)]
 
     r1 = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 5, "offset": 0}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 5, "offset": 0})).content[0].text
     )
     r2 = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 5, "offset": 5}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 5, "offset": 5})).content[0].text
     )
 
     ids1 = {t["id"] for t in r1}
@@ -163,7 +163,7 @@ async def test_large_offset_empty(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions.return_value = _wrap([])
 
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 10, "offset": 99999}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 10, "offset": 99999})).content[0].text
     )
 
     assert result == []
@@ -178,7 +178,7 @@ async def test_limit_zero(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions.return_value = _wrap([])
 
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 0}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 0})).content[0].text
     )
 
     assert result == []
@@ -194,7 +194,7 @@ async def test_negative_limit(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions.return_value = _wrap([])
 
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": -1}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": -1})).content[0].text
     )
 
     assert isinstance(result, list)
@@ -210,7 +210,7 @@ async def test_negative_offset(mcp_client, mock_monarch_client):
     mock_monarch_client.get_transactions.return_value = _wrap([])
 
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 10, "offset": -1}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 10, "offset": -1})).content[0].text
     )
 
     assert isinstance(result, list)
@@ -228,7 +228,7 @@ async def test_very_large_limit(mcp_client, mock_monarch_client):
     )
 
     result = json.loads(
-        (await mcp_client.call_tool("get_transactions", {"limit": 999999}))[0].text
+        (await mcp_client.call_tool("get_transactions", {"limit": 999999})).content[0].text
     )
 
     assert len(result) == 3
@@ -247,7 +247,7 @@ async def test_invalid_date_format(mcp_client, mock_monarch_client):
 
     result = (await mcp_client.call_tool(
         "get_transactions", {"start_date": "not-a-date", "end_date": "also-not"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Invalid date format" in result
@@ -264,7 +264,7 @@ async def test_future_dates_empty(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_transactions", {"start_date": "2099-01-01", "end_date": "2099-12-31"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result == []
@@ -328,7 +328,7 @@ async def test_account_id_and_account_ids_conflict(mcp_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_transactions", {"account_id": "acc-1", "account_ids": ["acc-2"]}
-        ))[0].text
+        )).content[0].text
     )
     assert "error" in result
 

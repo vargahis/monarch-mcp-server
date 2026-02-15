@@ -43,7 +43,7 @@ async def test_create_happy(mcp_write_client, mock_monarch_client):
                 "date": "2025-01-15",
                 "notes": "Morning coffee",
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["id"] == "txn-new"
@@ -71,7 +71,7 @@ async def test_create_positive_amount(mcp_write_client, mock_monarch_client):
                 "category_id": "cat-income",
                 "date": "2025-01-15",
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["amount"] == 500.00
@@ -110,7 +110,7 @@ async def test_create_invalid_account(mcp_write_client, mock_monarch_client):
             "category_id": "cat-1",
             "date": "2025-01-15",
         },
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Account not found" in result
@@ -130,7 +130,7 @@ async def test_create_invalid_category(mcp_write_client, mock_monarch_client):
             "category_id": "bad-cat",
             "date": "2025-01-15",
         },
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Category not found" in result
@@ -148,7 +148,7 @@ async def test_create_invalid_date(mcp_write_client, mock_monarch_client):
             "category_id": "cat-1",
             "date": "not-a-date",
         },
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -166,7 +166,7 @@ async def test_create_zero_amount(mcp_write_client, mock_monarch_client):
                 "category_id": "cat-1",
                 "date": "2025-01-15",
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["amount"] == 0.0
@@ -186,7 +186,7 @@ async def test_create_large_amount(mcp_write_client, mock_monarch_client):
                 "category_id": "cat-1",
                 "date": "2025-01-15",
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["amount"] == big
@@ -208,7 +208,7 @@ async def test_create_unicode_merchant(mcp_write_client, mock_monarch_client):
                 "category_id": "cat-1",
                 "date": "2025-01-15",
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["merchant"]["name"] == name
@@ -262,7 +262,7 @@ async def test_update_notes(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_transaction", {"transaction_id": "txn-1", "notes": "Updated note"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["notes"] == "Updated note"
@@ -277,7 +277,7 @@ async def test_update_noop(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_transaction", {"transaction_id": "txn-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["id"] == "txn-1"
@@ -291,7 +291,7 @@ async def test_update_amount(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_transaction", {"transaction_id": "txn-1", "amount": -99.99}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["amount"] == -99.99
@@ -307,7 +307,7 @@ async def test_update_merchant(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "update_transaction",
             {"transaction_id": "txn-1", "merchant_name": "New Name"},
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["merchant"]["name"] == "New Name"
@@ -319,7 +319,7 @@ async def test_update_date(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_transaction", {"transaction_id": "txn-1", "date": "2025-06-15"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["date"] == "2025-06-15"
@@ -335,7 +335,7 @@ async def test_update_hide_from_reports(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "update_transaction",
             {"transaction_id": "txn-1", "hide_from_reports": True},
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["hideFromReports"] is True
@@ -353,7 +353,7 @@ async def test_update_needs_review(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "update_transaction",
             {"transaction_id": "txn-1", "needs_review": False},
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["needsReview"] is False
@@ -376,7 +376,7 @@ async def test_update_multi_field(mcp_write_client, mock_monarch_client):
                 "notes": "multi",
                 "date": "2025-02-01",
             },
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["amount"] == -25.0
@@ -397,7 +397,7 @@ async def test_update_category(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "update_transaction",
             {"transaction_id": "txn-1", "category_id": "cat-2"},
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["category"]["name"] == "Groceries"
@@ -412,7 +412,7 @@ async def test_update_invalid_id(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "update_transaction", {"transaction_id": "bad-id", "notes": "x"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Transaction not found" in result
@@ -423,7 +423,7 @@ async def test_update_invalid_date(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "update_transaction", {"transaction_id": "txn-1", "date": "nope"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -438,7 +438,7 @@ async def test_update_long_notes(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "update_transaction", {"transaction_id": "txn-1", "notes": long_note}
-        ))[0].text
+        )).content[0].text
     )
 
     assert len(result["notes"]) == 5000
@@ -459,7 +459,7 @@ async def test_update_html_xss_merchant(mcp_write_client, mock_monarch_client):
             "transaction_id": "txn-1",
             "merchant_name": "<script>alert('xss')</script>",
         },
-    ))[0].text
+    )).content[0].text
 
     # WAF 403 is NOT treated as auth error — just passed through as tool error
     assert "Error" in result
@@ -476,7 +476,7 @@ async def test_delete_happy(mcp_write_client, mock_monarch_client):
     result = json.loads(
         (await mcp_write_client.call_tool(
             "delete_transaction", {"transaction_id": "txn-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["deleted"] is True
@@ -491,7 +491,7 @@ async def test_delete_invalid_id(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "delete_transaction", {"transaction_id": "bad-id"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Transaction not found" in result
@@ -504,6 +504,6 @@ async def test_delete_already_deleted(mcp_write_client, mock_monarch_client):
 
     result = (await mcp_write_client.call_tool(
         "delete_transaction", {"transaction_id": "txn-gone"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result

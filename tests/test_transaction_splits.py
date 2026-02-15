@@ -26,7 +26,7 @@ async def test_get_splits_happy(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_transaction_splits", {"transaction_id": "txn-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     splits = result["getTransaction"]["splitTransactions"]
@@ -42,7 +42,7 @@ async def test_get_splits_empty(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_transaction_splits", {"transaction_id": "txn-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["getTransaction"]["splitTransactions"] == []
@@ -55,7 +55,7 @@ async def test_get_splits_error(mcp_client, mock_monarch_client):
 
     result = (await mcp_client.call_tool(
         "get_transaction_splits", {"transaction_id": "bad-id"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
 
@@ -78,7 +78,7 @@ async def test_update_splits_happy(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "update_transaction_splits",
             {"transaction_id": "txn-1", "split_data": split_data},
-        ))[0].text
+        )).content[0].text
     )
 
     assert "updateTransactionSplits" in result
@@ -96,7 +96,7 @@ async def test_update_splits_remove_all(mcp_write_client, mock_monarch_client):
         (await mcp_write_client.call_tool(
             "update_transaction_splits",
             {"transaction_id": "txn-1", "split_data": []},
-        ))[0].text
+        )).content[0].text
     )
 
     assert "updateTransactionSplits" in result
@@ -114,6 +114,6 @@ async def test_update_splits_error(mcp_write_client, mock_monarch_client):
             "transaction_id": "txn-1",
             "split_data": [{"merchantName": "X", "amount": -50.0, "categoryId": "cat-1"}],
         },
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result

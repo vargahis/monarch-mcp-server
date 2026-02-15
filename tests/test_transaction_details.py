@@ -25,7 +25,7 @@ async def test_details_happy(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_transaction_details", {"transaction_id": "txn-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     assert result["getTransaction"]["id"] == "txn-1"
@@ -54,7 +54,7 @@ async def test_details_not_found(mcp_client, mock_monarch_client):
 
     result = (await mcp_client.call_tool(
         "get_transaction_details", {"transaction_id": "bad-id"}
-    ))[0].text
+    )).content[0].text
 
     assert "Error" in result
     assert "Transaction not found" in result
@@ -82,7 +82,7 @@ async def test_details_full_data(mcp_client, mock_monarch_client):
     result = json.loads(
         (await mcp_client.call_tool(
             "get_transaction_details", {"transaction_id": "txn-1"}
-        ))[0].text
+        )).content[0].text
     )
 
     txn = result["getTransaction"]
