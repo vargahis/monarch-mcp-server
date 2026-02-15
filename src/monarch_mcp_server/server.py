@@ -30,7 +30,8 @@ load_dotenv()
 
 # ── Read-only mode (write tools disabled by default) ─────────────────
 _arg_parser = argparse.ArgumentParser(
-    description="Monarch Money MCP Server",
+    description="Monarch Money MCP Server — read-only by default; "
+                "pass --enable-write to expose write tools.",
 )
 _arg_parser.add_argument(
     "--enable-write",
