@@ -13,7 +13,7 @@ from unittest.mock import patch, Mock, MagicMock
 import pytest
 from monarchmoney import RequireMFAException
 
-from monarch_mcp_server.auth_server import (
+from monarch_mcp.auth_server import (
     _AuthHandler,
     _AuthState,
     _find_free_port,
@@ -82,9 +82,9 @@ def test_login_success_no_mfa():
     handler = _make_handler()
     handler._send_json = Mock()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
-        patch("monarch_mcp_server.auth_server._run_sync"),
-        patch("monarch_mcp_server.auth_server.secure_session") as mock_ss,
+        patch("monarch_mcp.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server._run_sync"),
+        patch("monarch_mcp.auth_server.secure_session") as mock_ss,
     ):
         handler._handle_login({"email": "a@b.com", "password": "pass"})
 
@@ -98,9 +98,9 @@ def test_login_mfa_required():
     handler = _make_handler()
     handler._send_json = Mock()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=RequireMFAException(),
         ),
     ):
@@ -147,9 +147,9 @@ def test_mfa_success():
     handler.auth_state.awaiting_mfa = True
 
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
-        patch("monarch_mcp_server.auth_server._run_sync"),
-        patch("monarch_mcp_server.auth_server.secure_session") as mock_ss,
+        patch("monarch_mcp.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server._run_sync"),
+        patch("monarch_mcp.auth_server.secure_session") as mock_ss,
     ):
         handler._handle_mfa({"code": "123456"})
 
@@ -200,7 +200,7 @@ def test_send_html():
 
 def test_log_message():
     handler = _make_handler()
-    with patch("monarch_mcp_server.auth_server.logger") as mock_log:
+    with patch("monarch_mcp.auth_server.logger") as mock_log:
         handler.log_message("request %s %s", "GET", "/")
 
     mock_log.debug.assert_called_once()
@@ -291,8 +291,8 @@ def test_find_free_port():
 
 def test_validate_token_valid():
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney") as mock_cls,
-        patch("monarch_mcp_server.auth_server._run_sync"),
+        patch("monarch_mcp.auth_server.MonarchMoney") as mock_cls,
+        patch("monarch_mcp.auth_server._run_sync"),
     ):
         mock_cls.return_value = MagicMock()
         result = _validate_token("good-token")
@@ -304,9 +304,9 @@ def test_validate_token_auth_error():
     from gql.transport.exceptions import TransportServerError  # pylint: disable=import-outside-toplevel
 
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=TransportServerError("Unauthorized", code=401),
         ),
     ):
@@ -317,9 +317,9 @@ def test_validate_token_auth_error():
 
 def test_validate_token_server_error():
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=OSError("network down"),
         ),
     ):

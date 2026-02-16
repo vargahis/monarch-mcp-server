@@ -36,11 +36,11 @@ jobs:
         run: mcpb validate .
 
       - name: Pack bundle
-        run: mcpb pack . monarch-money-mcp-${{ github.ref_name }}.mcpb
+        run: mcpb pack . monarch-mcp-${{ github.ref_name }}.mcpb
 
       - name: Upload to GitHub Release
         uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b  # v2
         with:
           tag_name: ${{ github.ref_name }}
-          files: monarch-money-mcp-${{ github.ref_name }}.mcpb
+          files: monarch-mcp-${{ github.ref_name }}.mcpb
           generate_release_notes: true

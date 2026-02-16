@@ -29,7 +29,7 @@ The server starts in **read-only mode** by default. Write tools are hidden and b
 
 #### Claude Desktop Extension (.mcpb)
 
-1. Download the latest `.mcpb` file from [Releases](https://github.com/vargahis/monarch-mcp-server/releases)
+1. Download the latest `.mcpb` file from [Releases](https://github.com/vargahis/monarch-mcp/releases)
 2. In Claude Desktop: **Settings > Extensions > Advanced Settings > Install Extensions** (in the "Extension Developer" section) — select the downloaded `.mcpb` file
 3. Restart Claude Desktop — done!
 
@@ -37,10 +37,10 @@ To enable write tools: **Settings > Extensions > Monarch Money MCP Server > Conf
 
 #### Python Library (pip)
 
-> **Why TestPyPI?** The package is currently in pre-release testing. Once validated, it will be published to the main Python Package Index (PyPI) and the install command will simplify to `pip install monarch-mcp-server`.
+> **Why TestPyPI?** The package is currently in pre-release testing. Once validated, it will be published to the main Python Package Index (PyPI) and the install command will simplify to `pip install monarch-mcp`.
 
 ```bash
-pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ monarch-mcp-server
+pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ monarch-mcp
 ```
 
 Add this to your Claude Desktop configuration file:
@@ -52,7 +52,7 @@ Add this to your Claude Desktop configuration file:
   "mcpServers": {
     "Monarch Money": {
       "command": "python3",
-      "args": ["-m", "monarch_mcp_server"]
+      "args": ["-m", "monarch_mcp"]
     }
   }
 }
@@ -65,7 +65,7 @@ Add this to your Claude Desktop configuration file:
   "mcpServers": {
     "Monarch Money": {
       "command": "py",
-      "args": ["-m", "monarch_mcp_server"]
+      "args": ["-m", "monarch_mcp"]
     }
   }
 }
@@ -83,7 +83,7 @@ To enable write tools, add `--enable-write` to the `args` array:
   "mcpServers": {
     "Monarch Money": {
       "command": "python3",
-      "args": ["-m", "monarch_mcp_server", "--enable-write"]
+      "args": ["-m", "monarch_mcp", "--enable-write"]
     }
   }
 }

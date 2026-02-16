@@ -3,7 +3,7 @@
 import asyncio
 import importlib
 
-import monarch_mcp_server.server as server_module
+import monarch_mcp.server as server_module
 
 WRITE_TOOL_NAMES = frozenset({
     "create_transaction", "update_transaction", "delete_transaction",

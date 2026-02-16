@@ -13,7 +13,7 @@ from gql.transport.exceptions import TransportServerError
 logger = logging.getLogger(__name__)
 
 # Keyring service identifiers
-KEYRING_SERVICE = "com.mcp.monarch-mcp-server"
+KEYRING_SERVICE = "com.mcp.monarch-mcp"
 KEYRING_USERNAME = "monarch-token"
 
 

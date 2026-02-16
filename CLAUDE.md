@@ -26,7 +26,7 @@ py -m pytest tests/
 All tests must pass.
 
 ```powershell
-py -m pylint src/monarch_mcp_server/
+py -m pylint src/monarch_mcp/
 ```
 Must score **10.00/10**. There is no pylint config file; the project uses pylint defaults.
 

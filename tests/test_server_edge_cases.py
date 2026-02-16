@@ -11,7 +11,7 @@ from unittest.mock import patch, AsyncMock
 
 import pytest
 
-from monarch_mcp_server.server import (
+from monarch_mcp.server import (
     get_monarch_client,
     main,
     run_async,
@@ -32,8 +32,8 @@ def test_get_client_env_credentials(monkeypatch):
     mock_client.token = "new-tok"
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_ss,
-        patch("monarch_mcp_server.server.MonarchMoney", return_value=mock_client),
+        patch("monarch_mcp.server.secure_session") as mock_ss,
+        patch("monarch_mcp.server.MonarchMoney", return_value=mock_client),
     ):
         mock_ss.get_authenticated_client.return_value = None
 
@@ -53,8 +53,8 @@ def test_get_client_env_login_failure(monkeypatch):
     mock_client.login.side_effect = RuntimeError("bad credentials")
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_ss,
-        patch("monarch_mcp_server.server.MonarchMoney", return_value=mock_client),
+        patch("monarch_mcp.server.secure_session") as mock_ss,
+        patch("monarch_mcp.server.MonarchMoney", return_value=mock_client),
     ):
         mock_ss.get_authenticated_client.return_value = None
 
@@ -64,14 +64,14 @@ def test_get_client_env_login_failure(monkeypatch):
 
 def test_get_client_no_credentials(mock_monarch_client, monkeypatch):
     """When no keyring token and no env vars, trigger_auth_flow + RuntimeError."""
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
 
         monkeypatch.delenv("MONARCH_EMAIL", raising=False)
         monkeypatch.delenv("MONARCH_PASSWORD", raising=False)
 
         with (
-            patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
+            patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
             pytest.raises(RuntimeError, match="Authentication needed"),
         ):
             run_async(get_monarch_client())
@@ -85,7 +85,7 @@ def test_get_client_no_credentials(mock_monarch_client, monkeypatch):
 
 
 async def test_check_auth_no_token(mcp_client):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
         result = (await mcp_client.call_tool("check_auth_status")).content[0].text
 
@@ -100,7 +100,7 @@ async def test_check_auth_with_env_email(mcp_client, monkeypatch):
 
 
 async def test_check_auth_exception(mcp_client):
-    with patch("monarch_mcp_server.server.secure_session") as mock_ss:
+    with patch("monarch_mcp.server.secure_session") as mock_ss:
         mock_ss.load_token.side_effect = RuntimeError("boom")
         result = (await mcp_client.call_tool("check_auth_status")).content[0].text
 
@@ -113,7 +113,7 @@ async def test_check_auth_exception(mcp_client):
 
 
 async def test_debug_session_no_token(mcp_client):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
         result = (await mcp_client.call_tool("debug_session_loading")).content[0].text
 
@@ -121,7 +121,7 @@ async def test_debug_session_no_token(mcp_client):
 
 
 async def test_debug_session_exception(mcp_client):
-    with patch("monarch_mcp_server.server.secure_session") as mock_ss:
+    with patch("monarch_mcp.server.secure_session") as mock_ss:
         mock_ss.load_token.side_effect = RuntimeError("keyring busted")
         result = (await mcp_client.call_tool("debug_session_loading")).content[0].text
 
@@ -170,8 +170,8 @@ async def test_refresh_accounts_empty(mcp_client, mock_monarch_client):
 
 def test_main_success():
     with (
-        patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
-        patch("monarch_mcp_server.server.mcp") as mock_mcp,
+        patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
+        patch("monarch_mcp.server.mcp") as mock_mcp,
     ):
         main()
 
@@ -181,8 +181,8 @@ def test_main_success():
 
 def test_main_exception():
     with (
-        patch("monarch_mcp_server.server.trigger_auth_flow"),
-        patch("monarch_mcp_server.server.mcp") as mock_mcp,
+        patch("monarch_mcp.server.trigger_auth_flow"),
+        patch("monarch_mcp.server.mcp") as mock_mcp,
     ):
         mock_mcp.run.side_effect = OSError("bind failed")
         with pytest.raises(OSError, match="bind failed"):

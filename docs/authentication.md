@@ -12,7 +12,7 @@ Technical details on how the Monarch MCP Server handles authentication, session 
 
 ## Session Management
 
-- Tokens are stored securely in the system keyring (service: `com.mcp.monarch-mcp-server`)
+- Tokens are stored securely in the system keyring (service: `com.mcp.monarch-mcp`)
 - The monarchmoneycommunity library hardwires `trusted_device=True`, which produces long-lived tokens that last weeks to months
 - Sessions persist across Claude Desktop restarts
 - Expired tokens are detected automatically and cleared, triggering re-authentication

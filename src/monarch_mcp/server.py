@@ -18,8 +18,8 @@ from gql import gql
 from gql.transport.exceptions import TransportServerError, TransportQueryError, TransportError
 from monarchmoney import MonarchMoney, LoginFailedException
 
-from monarch_mcp_server.secure_session import secure_session, is_auth_error
-from monarch_mcp_server.auth_server import trigger_auth_flow, _run_sync
+from monarch_mcp.secure_session import secure_session, is_auth_error
+from monarch_mcp.auth_server import trigger_auth_flow, _run_sync
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
