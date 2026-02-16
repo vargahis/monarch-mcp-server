@@ -36,3 +36,7 @@ When new MCP tool functionality is added or existing tools are updated, **both**
 
 1. **Unit tests** in `tests/` — pytest, mocked via `conftest.py` fixtures
 2. **Integration skill** at `.claude/skills/test-monarch-mcp/` — update `SKILL.md` and reference files in `references/`
+
+## No Absolute Paths
+
+Never use absolute filesystem paths in any project file — skills, prompts, documents, source code, or configuration. Use relative paths (from the project root) or descriptive references like "the project root" instead. Generic example paths in documentation (e.g., `/path/to/venv/...`) are acceptable.
