@@ -1,7 +1,7 @@
 {
   "manifest_version": "0.4",
   "name": "monarch-mcp",
-  "display_name": "Monarch Money MCP",
+  "display_name": "Monarch Money",
   "version": "0.0.0",
   "description": "MCP server for Monarch Money personal finance — accounts, transactions, budgets, cashflow, investments, and more.",
   "author": {
