@@ -22,7 +22,7 @@ This test suite supports two modes, auto-detected at startup:
 
 ## State File Management
 
-The state file is `mcp-test-state.json` in the project root (`C:\dev\monarch-mcp\monarch-mcp-server\mcp-test-state.json`).
+The state file is `mcp-test-state.json` in the project root.
 
 ### On Invocation — Check for Existing State
 

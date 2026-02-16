@@ -7,8 +7,8 @@ import pytest
 from gql.transport.exceptions import TransportServerError, TransportQueryError, TransportError
 from monarchmoney import LoginFailedException
 
-from monarch_mcp_server.server import run_async
-from monarch_mcp_server.auth_server import _AuthHandler, _AuthState
+from monarch_mcp.server import run_async
+from monarch_mcp.auth_server import _AuthHandler, _AuthState
 
 
 # ===================================================================
@@ -22,8 +22,8 @@ def test_run_async_auth_401_triggers_recovery():
         raise TransportServerError("Unauthorized", code=401)
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_session,
-        patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
+        patch("monarch_mcp.server.secure_session") as mock_session,
+        patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
     ):
         with pytest.raises(RuntimeError, match="session has expired"):
             run_async(_failing())
@@ -38,8 +38,8 @@ def test_run_async_login_failed_triggers_recovery():
         raise LoginFailedException()
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_session,
-        patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
+        patch("monarch_mcp.server.secure_session") as mock_session,
+        patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
     ):
         with pytest.raises(RuntimeError, match="session has expired"):
             run_async(_failing())
@@ -54,8 +54,8 @@ def test_run_async_non_auth_500_propagates():
         raise TransportServerError("Internal Server Error", code=500)
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_session,
-        patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
+        patch("monarch_mcp.server.secure_session") as mock_session,
+        patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
     ):
         with pytest.raises(TransportServerError):
             run_async(_failing())
@@ -70,8 +70,8 @@ def test_run_async_generic_exception_propagates():
         raise ValueError("something went wrong")
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_session,
-        patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
+        patch("monarch_mcp.server.secure_session") as mock_session,
+        patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
     ):
         with pytest.raises(ValueError, match="something went wrong"):
             run_async(_failing())
@@ -86,8 +86,8 @@ def test_run_async_transport_query_error_propagates():
         raise TransportQueryError("Invalid query")
 
     with (
-        patch("monarch_mcp_server.server.secure_session") as mock_session,
-        patch("monarch_mcp_server.server.trigger_auth_flow") as mock_auth,
+        patch("monarch_mcp.server.secure_session") as mock_session,
+        patch("monarch_mcp.server.trigger_auth_flow") as mock_auth,
     ):
         with pytest.raises(TransportQueryError):
             run_async(_failing())
@@ -175,9 +175,9 @@ def _make_handler():
 def test_login_handler_bad_credentials():
     handler = _make_handler()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=LoginFailedException(),
         ),
     ):
@@ -191,9 +191,9 @@ def test_login_handler_bad_credentials():
 def test_login_handler_transport_server_error():
     handler = _make_handler()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=TransportServerError("Server Error", code=500),
         ),
     ):
@@ -207,9 +207,9 @@ def test_login_handler_transport_server_error():
 def test_login_handler_unexpected_error():
     handler = _make_handler()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=OSError("network down"),
         ),
     ):
@@ -234,9 +234,9 @@ def _make_mfa_handler():
 def test_mfa_handler_bad_code():
     handler = _make_mfa_handler()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=LoginFailedException(),
         ),
     ):
@@ -250,9 +250,9 @@ def test_mfa_handler_bad_code():
 def test_mfa_handler_transport_server_error():
     handler = _make_mfa_handler()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=TransportServerError("Server Error", code=503),
         ),
     ):
@@ -266,9 +266,9 @@ def test_mfa_handler_transport_server_error():
 def test_mfa_handler_unexpected_error():
     handler = _make_mfa_handler()
     with (
-        patch("monarch_mcp_server.auth_server.MonarchMoney"),
+        patch("monarch_mcp.auth_server.MonarchMoney"),
         patch(
-            "monarch_mcp_server.auth_server._run_sync",
+            "monarch_mcp.auth_server._run_sync",
             side_effect=OSError("timeout"),
         ),
     ):

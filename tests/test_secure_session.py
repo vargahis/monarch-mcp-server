@@ -10,7 +10,7 @@ from unittest.mock import patch, MagicMock
 
 import pytest
 
-from monarch_mcp_server.secure_session import SecureMonarchSession
+from monarch_mcp.secure_session import SecureMonarchSession
 
 
 @pytest.fixture
@@ -25,18 +25,18 @@ def session():
 
 
 def test_save_token_success(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         session._cleanup_old_session_files = MagicMock()
         session.save_token("tok-123")
 
     mock_kr.set_password.assert_called_once_with(
-        "com.mcp.monarch-mcp-server", "monarch-token", "tok-123",
+        "com.mcp.monarch-mcp", "monarch-token", "tok-123",
     )
     session._cleanup_old_session_files.assert_called_once()
 
 
 def test_save_token_keyring_failure(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.set_password.side_effect = RuntimeError("keyring locked")
         with pytest.raises(RuntimeError, match="keyring locked"):
             session.save_token("tok-123")
@@ -48,7 +48,7 @@ def test_save_token_keyring_failure(session):
 
 
 def test_load_token_found(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = "tok-abc"
         result = session.load_token()
 
@@ -56,7 +56,7 @@ def test_load_token_found(session):
 
 
 def test_load_token_not_found(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
         result = session.load_token()
 
@@ -64,7 +64,7 @@ def test_load_token_not_found(session):
 
 
 def test_load_token_exception(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.side_effect = RuntimeError("backend crash")
         result = session.load_token()
 
@@ -77,7 +77,7 @@ def test_load_token_exception(session):
 
 
 def test_delete_token_success(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         session._cleanup_old_session_files = MagicMock()
         session.delete_token()
 
@@ -88,7 +88,7 @@ def test_delete_token_success(session):
 def test_delete_token_not_found(session):
     import keyring.errors  # pylint: disable=import-outside-toplevel
 
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.errors = keyring.errors
         mock_kr.delete_password.side_effect = keyring.errors.PasswordDeleteError()
         session.delete_token()  # should not raise
@@ -97,7 +97,7 @@ def test_delete_token_not_found(session):
 def test_delete_token_generic_exception(session):
     import keyring.errors  # pylint: disable=import-outside-toplevel
 
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.errors = keyring.errors
         mock_kr.delete_password.side_effect = OSError("disk full")
         session.delete_token()  # should not raise
@@ -110,8 +110,8 @@ def test_delete_token_generic_exception(session):
 
 def test_get_client_success(session):
     with (
-        patch("monarch_mcp_server.secure_session.keyring") as mock_kr,
-        patch("monarch_mcp_server.secure_session.MonarchMoney") as mock_cls,
+        patch("monarch_mcp.secure_session.keyring") as mock_kr,
+        patch("monarch_mcp.secure_session.MonarchMoney") as mock_cls,
     ):
         mock_kr.get_password.return_value = "tok-abc"
         mock_client = MagicMock()
@@ -124,7 +124,7 @@ def test_get_client_success(session):
 
 
 def test_get_client_no_token(session):
-    with patch("monarch_mcp_server.secure_session.keyring") as mock_kr:
+    with patch("monarch_mcp.secure_session.keyring") as mock_kr:
         mock_kr.get_password.return_value = None
         result = session.get_authenticated_client()
 
@@ -133,8 +133,8 @@ def test_get_client_no_token(session):
 
 def test_get_client_creation_exception(session):
     with (
-        patch("monarch_mcp_server.secure_session.keyring") as mock_kr,
-        patch("monarch_mcp_server.secure_session.MonarchMoney") as mock_cls,
+        patch("monarch_mcp.secure_session.keyring") as mock_kr,
+        patch("monarch_mcp.secure_session.MonarchMoney") as mock_cls,
     ):
         mock_kr.get_password.return_value = "tok-abc"
         mock_cls.side_effect = RuntimeError("constructor failed")
@@ -205,7 +205,7 @@ def test_cleanup_handles_exception(session, tmp_path, monkeypatch):
     target.write_text("{}")
     monkeypatch.chdir(tmp_path)
 
-    with patch("monarch_mcp_server.secure_session.os.remove",
+    with patch("monarch_mcp.secure_session.os.remove",
                side_effect=PermissionError("read-only")):
         session._cleanup_old_session_files()  # should not raise
 

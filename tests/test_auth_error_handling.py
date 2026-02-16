@@ -4,7 +4,7 @@
 from gql.transport.exceptions import TransportServerError
 from monarchmoney import LoginFailedException
 
-from monarch_mcp_server.secure_session import is_auth_error
+from monarch_mcp.secure_session import is_auth_error
 
 
 # ===================================================================

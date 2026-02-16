@@ -3,7 +3,7 @@ requires = ["setuptools>=80", "setuptools-scm>=8", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "monarch-mcp-server"
+name = "monarch-mcp"
 dynamic = ["version"]
 description = "Model Context Protocol (MCP) server for Monarch Money personal finance platform"
 readme = "README.md"
@@ -40,12 +40,12 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/vargahis/monarch-mcp-server"
-Repository = "https://github.com/vargahis/monarch-mcp-server"
-Issues = "https://github.com/vargahis/monarch-mcp-server/issues"
+Homepage = "https://github.com/vargahis/monarch-mcp"
+Repository = "https://github.com/vargahis/monarch-mcp"
+Issues = "https://github.com/vargahis/monarch-mcp/issues"
 
 [project.scripts]
-monarch-mcp-server = "monarch_mcp_server.server:main"
+monarch-mcp = "monarch_mcp.server:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

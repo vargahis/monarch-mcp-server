@@ -21,7 +21,7 @@ from http.server import HTTPServer, BaseHTTPRequestHandler
 from gql.transport.exceptions import TransportServerError
 from monarchmoney import MonarchMoney, RequireMFAException, LoginFailedException
 
-from monarch_mcp_server.secure_session import secure_session, is_auth_error
+from monarch_mcp.secure_session import secure_session, is_auth_error
 
 logger = logging.getLogger(__name__)
 

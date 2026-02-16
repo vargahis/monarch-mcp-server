@@ -1,16 +1,16 @@
 {
   "manifest_version": "0.4",
-  "name": "monarch-money-mcp",
-  "display_name": "Monarch Money MCP Server",
+  "name": "monarch-mcp",
+  "display_name": "Monarch Money",
   "version": "0.0.0",
   "description": "MCP server for Monarch Money personal finance — accounts, transactions, budgets, cashflow, investments, and more.",
   "author": {
     "name": "vargahis",
-    "url": "https://github.com/vargahis/monarch-mcp-server"
+    "url": "https://github.com/vargahis/monarch-mcp"
   },
   "server": {
     "type": "uv",
-    "entry_point": "src/monarch_mcp_server/server.py",
+    "entry_point": "src/monarch_mcp/server.py",
     "mcp_config": {
       "command": "uv",
       "args": [
@@ -19,7 +19,7 @@
         "${__dirname}",
         "fastmcp",
         "run",
-        "${__dirname}/src/monarch_mcp_server/server.py",
+        "${__dirname}/src/monarch_mcp/server.py",
         "--",
         "--enable-write=${user_config.enable_write}"
       ]
