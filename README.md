@@ -4,6 +4,11 @@ A Model Context Protocol (MCP) server for integrating with the Monarch Money per
 
 ## Overview
 
+- **Secure by design** — browser-based login, token stored in OS keychain (never in config files or env vars)
+- **Safe by default** — read-only mode prevents accidental changes; write tools require explicit opt-in
+- **Comprehensive** — 37 tools covering accounts, transactions, splits, budgets, cashflow, tags, categories, and credit history
+- **Easy to install** — one-click Claude Desktop extension (`.mcpb`) or `pip install monarch-mcp`
+
 **Two ways to install:**
 
 | | Claude Desktop Extension | Python Library (pip) |
