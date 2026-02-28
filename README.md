@@ -7,14 +7,7 @@ A Model Context Protocol (MCP) server for integrating with the Monarch Money per
 - **Secure by design** — browser-based login, token stored in OS keychain (never in config files or env vars)
 - **Safe by default** — read-only mode prevents accidental changes; write tools require explicit opt-in
 - **Comprehensive** — 37 tools covering accounts, transactions, splits, budgets, cashflow, tags, categories, and credit history
-- **Easy to install** — one-click Claude Desktop extension (`.mcpb`) or `pip install monarch-mcp`
-
-**Two ways to install:**
-
-| | Claude Desktop Extension | Python Library (pip) |
-|---|---|---|
-| **Install** | Download `.mcpb`, add in Settings | `pip install` + JSON config |
-| **Best for** | Most users | Custom setups, virtual envs |
+- **Easy to install** — Claude Desktop extension (`.mcpb`), `uvx`, or `pip`
 
 **Two operating modes:**
 
@@ -28,19 +21,55 @@ The server starts in **read-only mode** by default. Write tools are hidden and b
 | **Update** accounts, budgets, splits | No | Yes |
 | **Delete** transactions, tags, accounts | No | Yes |
 
-## Getting Started
+## Quick Start
 
 ### Installation
 
-#### Claude Desktop Extension (.mcpb)
+#### Option 1: Claude Desktop Extension (.mcpb) — Recommended for Claude Desktop
 
-1. Download the latest `.mcpb` file from [Releases](https://github.com/vargahis/monarch-mcp/releases)
-2. In Claude Desktop: **Settings > Extensions > Advanced Settings > Install Extensions** (in the "Extension Developer" section) — select the downloaded `.mcpb` file
-3. Restart Claude Desktop — done!
+> Enables toggling write mode on/off directly from the Claude Desktop app.
+
+1. Download the latest `.mcpb` from [Releases](https://github.com/vargahis/monarch-mcp/releases)
+2. In Claude Desktop: **Settings > Extensions > Advanced Settings > Install Extensions** — select the `.mcpb` file
+3. Restart Claude Desktop
 
 To enable write tools: **Settings > Extensions > Monarch Money MCP Server > Configure** — toggle **"Enable write tools"** and click **Save**.
 
-#### Python Library (pip)
+---
+
+#### Option 2: uvx (no install required) — Recommended for agents (e.g. Claude Code or Cursor)
+
+> Also works with Claude Desktop, but write mode cannot be toggled from the app — set it in the config instead.
+
+Add to your MCP config file:
+
+```json
+{
+  "mcpServers": {
+    "Monarch Money": {
+      "command": "uvx",
+      "args": ["monarch-mcp"]
+    }
+  }
+}
+```
+
+To enable write tools:
+
+```json
+{
+  "mcpServers": {
+    "Monarch Money": {
+      "command": "uvx",
+      "args": ["monarch-mcp", "--enable-write"]
+    }
+  }
+}
+```
+
+---
+
+#### Option 3: pip install — Recommended for local installation and venv
 
 ```bash
 pip install monarch-mcp
@@ -48,53 +77,45 @@ pip install monarch-mcp
 
 > **Contributors**: See [docs/releasing.md](docs/releasing.md) for the release process, version scheme, and pre-release testing via TestPyPI.
 
-Add this to your Claude Desktop configuration file:
-
-**macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
+Add to your MCP config using the full path to your Python interpreter:
 
 ```json
 {
   "mcpServers": {
     "Monarch Money": {
-      "command": "python3",
+      "command": "/path/to/bin/python3",
       "args": ["-m", "monarch_mcp"]
     }
   }
 }
 ```
 
-**Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+To enable write tools, add `"--enable-write"` to `args`.
+
+---
+
+#### Option 4: Clone and install — Recommended for development
+
+```bash
+git clone https://github.com/vargahis/monarch-mcp.git
+cd monarch-mcp
+pip install -e .
+```
+
+Then add to your MCP config using the Python interpreter from your dev environment:
 
 ```json
 {
   "mcpServers": {
     "Monarch Money": {
-      "command": "py",
+      "command": "/path/to/bin/python3",
       "args": ["-m", "monarch_mcp"]
     }
   }
 }
 ```
 
-> **Note**: The `"command"` value must be whatever launches Python on your system.
-> Common values: `python3` (macOS/Linux), `py` (Windows), or `python`.
-> If you installed into a virtual environment, use the full path to that environment's
-> interpreter instead (e.g., `/path/to/venv/bin/python3` or `C:\path\to\venv\Scripts\python.exe`).
-
-To enable write tools, add `--enable-write` to the `args` array:
-
-```json
-{
-  "mcpServers": {
-    "Monarch Money": {
-      "command": "python3",
-      "args": ["-m", "monarch_mcp", "--enable-write"]
-    }
-  }
-}
-```
-
-After saving the config, **restart Claude Desktop**.
+To enable write tools, add `"--enable-write"` to `args`.
 
 ### Authentication
 
