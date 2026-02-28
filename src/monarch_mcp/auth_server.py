@@ -13,6 +13,7 @@ import json
 import logging
 import os
 import socket
+import subprocess
 import threading
 import time
 import webbrowser
@@ -164,11 +165,66 @@ document.getElementById('code').addEventListener('keydown',e=>{if(e.key==='Enter
 
 # ── Helpers ─────────────────────────────────────────────────────────────
 
-def _find_free_port() -> int:
-    """Find an available TCP port on localhost."""
+def _find_free_port(host: str = "127.0.0.1") -> int:
+    """Find an available TCP port on the given host."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(("127.0.0.1", 0))
+        s.bind((host, 0))
         return s.getsockname()[1]
+
+
+def _is_wsl() -> bool:
+    """Return True when running inside WSL1 or WSL2."""
+    if os.getenv("WSL_DISTRO_NAME") or os.getenv("WSLENV"):
+        return True
+    try:
+        with open("/proc/version", encoding="utf-8") as f:
+            return "microsoft" in f.read().lower()
+    except OSError:
+        return False
+
+
+def _wsl_host_ip() -> str | None:
+    """Return the WSL2 interface IP reachable from Windows, or None on failure."""
+    try:
+        out = subprocess.check_output(["hostname", "-I"], text=True).strip()
+        # hostname -I may return multiple IPs; the first is the primary one
+        ip = out.split()[0] if out.split() else None
+        return ip or None
+    except (subprocess.SubprocessError, FileNotFoundError, IndexError):
+        return None
+
+
+def _open_browser(url: str) -> None:
+    """Open *url* in the user's browser.
+
+    On WSL, tries ``wslview`` (from the *wslu* package) first so the URL
+    opens in the default Windows browser.  Falls back to the standard
+    ``webbrowser`` module, and finally just logs the URL so the user can
+    open it manually.
+    """
+    if _is_wsl():
+        try:
+            subprocess.Popen(  # pylint: disable=consider-using-with
+                ["wslview", url],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            logger.info("Opened browser via wslview: %s", url)
+            return
+        except FileNotFoundError:
+            logger.debug("wslview not found — falling back to webbrowser")
+
+    try:
+        webbrowser.open(url)
+        return
+    except Exception:  # pylint: disable=broad-exception-caught
+        pass
+
+    logger.warning(
+        "Could not open browser automatically. "
+        "Please visit %s to authenticate.",
+        url,
+    )
 
 
 def _run_sync(coro):
@@ -394,7 +450,18 @@ def trigger_auth_flow() -> None:
         _auth_guard["active"] = True
 
     # Spin up the auth server (outside the lock — no need to hold it)
-    port = _find_free_port()
+    #
+    # WSL2: bind on all interfaces so the Windows browser can reach the server
+    # via the WSL2 IP address.  On Windows/macOS bind to loopback only.
+    on_wsl = _is_wsl()
+    bind_host = "0.0.0.0" if on_wsl else "127.0.0.1"
+    port = _find_free_port(bind_host)
+
+    if on_wsl:
+        url_host = _wsl_host_ip() or "127.0.0.1"
+    else:
+        url_host = "127.0.0.1"
+
     state = _AuthState()
 
     # Create a handler class that carries our state
@@ -404,12 +471,12 @@ def trigger_auth_flow() -> None:
         {"auth_state": state},
     )
 
-    server = HTTPServer(("127.0.0.1", port), handler_class)
+    server = HTTPServer((bind_host, port), handler_class)
     server.timeout = 1  # unblock handle_request() every second to check state
 
     def _serve():
         start = time.time()
-        logger.info("Auth server listening on http://127.0.0.1:%d", port)
+        logger.info("Auth server listening on %s:%d", bind_host, port)
         try:
             while not state.completed:
                 server.handle_request()
@@ -429,13 +496,6 @@ def trigger_auth_flow() -> None:
     thread = threading.Thread(target=_serve, daemon=True, name="monarch-auth-server")
     thread.start()
 
-    url = f"http://127.0.0.1:{port}"
+    url = f"http://{url_host}:{port}"
     logger.info("Opening browser for Monarch Money login: %s", url)
-    try:
-        webbrowser.open(url)
-    except Exception:  # pylint: disable=broad-exception-caught
-        logger.warning(
-            "Could not open browser automatically. "
-            "Please visit %s to authenticate.",
-            url,
-        )
+    _open_browser(url)

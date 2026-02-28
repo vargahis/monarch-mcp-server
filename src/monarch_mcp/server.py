@@ -2,12 +2,14 @@
 # pylint: disable=too-many-lines
 
 import argparse
+import asyncio
 import functools
 import json
 import logging
 import os
 import re
 import traceback
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 from concurrent.futures import ThreadPoolExecutor
@@ -47,7 +49,13 @@ _PARSED_ARGS, _ = _arg_parser.parse_known_args()
 _WRITE_ENABLED = _PARSED_ARGS.enable_write.lower() in ("true", "1")
 
 # Initialize FastMCP server
-mcp = FastMCP("Monarch Money MCP Server")
+@asynccontextmanager
+async def _lifespan(server):  # pylint: disable=unused-argument
+    """Run startup tasks (auth check) before the MCP server begins serving."""
+    await asyncio.to_thread(trigger_auth_flow)
+    yield
+
+mcp = FastMCP("Monarch Money MCP Server", lifespan=_lifespan)
 
 
 def run_async(coro):

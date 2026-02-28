@@ -109,6 +109,22 @@ Key details:
 - **MFA fully supported**
 - **Fallback**: run `python login_setup.py` in a terminal for headless environments
 
+#### WSL (Windows Subsystem for Linux)
+
+Browser-based auth works on WSL2, but requires the `wslu` package so the login page opens in your Windows browser:
+
+```bash
+sudo apt install wslu
+```
+
+Without `wslu`, the server still starts and the auth URL is printed to the server log — you can copy it into your Windows browser manually.
+
+WSL doesn't have a native keyring daemon, so token storage also requires an extra package:
+
+```bash
+pip install keyrings.alt
+```
+
 For technical details on the auth architecture, see [docs/authentication.md](docs/authentication.md).
 
 ### Usage Examples
