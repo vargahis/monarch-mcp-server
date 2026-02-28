@@ -65,38 +65,3 @@ The publish workflow reuses `ci.yml` via `workflow_call`.
 ## MCP Bundle
 
 The `.mcpb` bundle is built for every tagged version and attached to the GitHub Release. Pre-release tags (dev, alpha, beta) are automatically flagged as pre-releases on GitHub.
-
-## GitHub Repository Setup
-
-For trusted publishing (OIDC) to work, the repository needs two GitHub Environments configured:
-
-### 1. Create Environments
-
-In **Settings > Environments**, create:
-
-- **`testpypi`** — used for dev/alpha/beta publishes
-- **`pypi`** — used for rc/stable publishes (optionally add a required reviewer for extra safety)
-
-### 2. Configure Trusted Publishers
-
-#### TestPyPI
-
-At https://test.pypi.org/manage/project/monarch-mcp/settings/publishing/:
-
-| Field | Value |
-|---|---|
-| Owner | `vargahis` |
-| Repository | `monarch-mcp` |
-| Workflow name | `publish.yml` |
-| Environment name | `testpypi` |
-
-#### PyPI
-
-At https://pypi.org (use "Add a new pending publisher" if the project doesn't exist yet):
-
-| Field | Value |
-|---|---|
-| Owner | `vargahis` |
-| Repository | `monarch-mcp` |
-| Workflow name | `publish.yml` |
-| Environment name | `pypi` |
