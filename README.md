@@ -1,4 +1,5 @@
 # Monarch Money MCP Server
+<!-- mcp-name: io.github.vargahis/monarch-money -->
 
 A Model Context Protocol (MCP) server for integrating with the Monarch Money personal finance platform through Claude Desktop.
 

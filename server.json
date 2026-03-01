@@ -1,0 +1,36 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.vargahis/monarch-money",
+  "title": "Monarch Money",
+  "description": "MCP server for Monarch Money — accounts, transactions, budgets, cashflow, investments, and more",
+  "repository": {
+    "url": "https://github.com/vargahis/monarch-mcp",
+    "source": "github"
+  },
+  "version": "0.0.0",
+  "packages": [
+    {
+      "registryType": "pypi",
+      "identifier": "monarch-mcp",
+      "version": "0.0.0",
+      "runtimeHint": "uvx",
+      "transport": { "type": "stdio" },
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--enable-write",
+          "description": "Enable write tools (create, update, delete data). Read-only by default.",
+          "isRequired": false,
+          "format": "boolean",
+          "default": "false"
+        }
+      ]
+    },
+    {
+      "registryType": "mcpb",
+      "identifier": "https://github.com/vargahis/monarch-mcp/releases/download/v0.0.0/monarch-mcp-v0.0.0.mcpb",
+      "fileSha256": "0000000000000000000000000000000000000000000000000000000000000000",
+      "transport": { "type": "stdio" }
+    }
+  ]
+}
