@@ -1,4 +1,4 @@
-name: Publish to PyPI
+name: Publish
 
 on:
   push:
@@ -90,3 +90,101 @@ jobs:
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
+
+  build-mcpb:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install mcpb CLI
+        run: npm install -g @anthropic-ai/mcpb
+
+      - name: Inject version from git tag
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+
+      - name: Validate manifest
+        run: mcpb validate .
+
+      - name: Pack bundle
+        run: mcpb pack . monarch-mcp-${{ github.ref_name }}.mcpb
+
+      - name: Detect pre-release
+        id: prerelease
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          if [[ "$TAG" =~ \.?(dev|a|alpha|b|beta|rc)[0-9]+$ ]]; then
+            echo "is_prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@a06a81a03ee405af7f2048a818ed3f03bbf83c7b  # v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          files: monarch-mcp-${{ github.ref_name }}.mcpb
+          generate_release_notes: true
+          prerelease: ${{ steps.prerelease.outputs.is_prerelease == 'true' }}
+
+      - name: Upload mcpb as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcpb
+          path: monarch-mcp-${{ github.ref_name }}.mcpb
+
+  publish-mcp-registry:
+    needs: [publish-pypi, build-mcpb]
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Download mcpb artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: mcpb
+
+      - name: Inject version, SHA, and MCPB URL into server.json
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          MCPB_FILE="monarch-mcp-${{ github.ref_name }}.mcpb"
+          SHA256=$(sha256sum "$MCPB_FILE" | awk '{print $1}')
+          MCPB_URL="https://github.com/vargahis/monarch-mcp/releases/download/${{ github.ref_name }}/$MCPB_FILE"
+
+          jq --arg v "$VERSION" \
+             --arg sha "$SHA256" \
+             --arg url "$MCPB_URL" \
+             '.version = $v
+              | .packages[0].version = $v
+              | .packages[1].identifier = $url
+              | .packages[1].fileSha256 = $sha' \
+             server.json > server.tmp && mv server.tmp server.json
+
+          echo "::group::server.json"
+          cat server.json
+          echo "::endgroup::"
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_linux_amd64.tar.gz" | tar xz mcp-publisher
+
+      - name: Authenticate to MCP Registry
+        run: ./mcp-publisher login github-oidc
+
+      - name: Publish to MCP Registry
+        run: ./mcp-publisher publish

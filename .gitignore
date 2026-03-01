@@ -78,6 +78,7 @@ Thumbs.db
 *.session
 *.json
 !manifest.json
+!server.json
 .env*
 !.env.example
 auth_tokens/
