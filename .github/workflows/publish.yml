@@ -60,20 +60,38 @@ jobs:
   publish-testpypi:
     needs: [detect-release-type, build]
     if: needs.detect-release-type.outputs.release_type == 'prerelease'
-    uses: ./.github/workflows/publish-testpypi.yml
-    with:
-      tag: ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    environment: testpypi
     permissions:
       id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to TestPyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
 
   publish-pypi:
     needs: [detect-release-type, build]
     if: needs.detect-release-type.outputs.release_type == 'prod'
-    uses: ./.github/workflows/publish-pypi.yml
-    with:
-      tag: ${{ github.ref_name }}
+    runs-on: ubuntu-latest
+    environment: pypi
     permissions:
       id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   build-mcpb:
     needs: build

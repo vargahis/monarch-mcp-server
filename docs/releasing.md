@@ -37,11 +37,11 @@ Tag push (v*)
   │       │
   │       ├─ Detect release type
   │       │   │
-  │       │   ├─ prod ──────► publish-pypi.yml ──► publish-mcp-registry.yml
+  │       │   ├─ prod ──────► PyPI ──► MCP Registry
   │       │   │
   │       │   ├─ rc ────────► (skip — publish manually later)
   │       │   │
-  │       │   └─ prerelease ► publish-testpypi.yml
+  │       │   └─ prerelease ► TestPyPI
   │       │
   │       └─ Build mcpb ──► GitHub Release
   │
@@ -52,11 +52,11 @@ Manual dispatch (RC only)
   │   │
   │   └─ target?
   │       │
-  │       ├─ pypi ──────────► publish-pypi.yml
+  │       ├─ pypi ──────────► PyPI
   │       │
-  │       ├─ mcp-registry ──► publish-mcp-registry.yml
+  │       ├─ mcp-registry ──► MCP Registry
   │       │
-  │       └─ both ──────────► publish-pypi.yml ──► publish-mcp-registry.yml
+  │       └─ both ──────────► PyPI ──► MCP Registry
 ```
 
 ## How to Release

@@ -100,11 +100,19 @@ jobs:
   publish-pypi:
     needs: build
     if: inputs.target == 'pypi' || inputs.target == 'both'
-    uses: ./.github/workflows/publish-pypi.yml
-    with:
-      tag: ${{ inputs.tag }}
+    runs-on: ubuntu-latest
+    environment: pypi
     permissions:
       id-token: write
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+      - name: Publish to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
 
   publish-mcp-registry:
     needs: [build-mcpb, publish-pypi]
