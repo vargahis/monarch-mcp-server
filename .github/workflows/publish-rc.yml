@@ -1,0 +1,120 @@
+name: Publish RC
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'RC tag (e.g., v1.0.0rc1)'
+        required: true
+        type: string
+      target:
+        description: 'Publish target'
+        required: true
+        type: choice
+        options:
+          - pypi
+          - mcp-registry
+          - both
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Validate RC tag
+        run: |
+          TAG="${{ inputs.tag }}"
+          if [[ ! "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+\.?rc[0-9]+$ ]]; then
+            echo "::error::Tag '$TAG' does not match RC pattern (e.g., v1.0.0rc1)"
+            exit 1
+          fi
+          if ! git rev-parse "$TAG" >/dev/null 2>&1; then
+            echo "::error::Tag '$TAG' does not exist"
+            exit 1
+          fi
+          echo "Validated RC tag: $TAG"
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install build tools
+        run: pip install build
+
+      - name: Build sdist and wheel
+        run: python -m build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  build-mcpb:
+    needs: validate
+    if: inputs.target == 'mcp-registry' || inputs.target == 'both'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install mcpb CLI
+        run: npm install -g @anthropic-ai/mcpb
+
+      - name: Inject version from git tag
+        run: |
+          VERSION="${{ inputs.tag }}"
+          VERSION="${VERSION#v}"
+          jq --arg v "$VERSION" '.version = $v' manifest.json > manifest.tmp && mv manifest.tmp manifest.json
+
+      - name: Validate manifest
+        run: mcpb validate .
+
+      - name: Pack bundle
+        run: mcpb pack . monarch-mcp-${{ inputs.tag }}.mcpb
+
+      - name: Upload mcpb as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcpb
+          path: monarch-mcp-${{ inputs.tag }}.mcpb
+
+  publish-pypi:
+    needs: build
+    if: inputs.target == 'pypi' || inputs.target == 'both'
+    uses: ./.github/workflows/publish-pypi.yml
+    with:
+      tag: ${{ inputs.tag }}
+    permissions:
+      id-token: write
+
+  publish-mcp-registry:
+    needs: [build-mcpb, publish-pypi]
+    if: |
+      always() &&
+      (inputs.target == 'mcp-registry' || inputs.target == 'both') &&
+      needs.build-mcpb.result == 'success' &&
+      (needs.publish-pypi.result == 'success' || needs.publish-pypi.result == 'skipped')
+    uses: ./.github/workflows/publish-mcp-registry.yml
+    with:
+      tag: ${{ inputs.tag }}
+    permissions:
+      id-token: write
